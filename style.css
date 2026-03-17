@@ -2,3 +2,9 @@ h1 {
     display: flex;
     justify-content: center;
 }
+#beanpic {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 25%;
+}
