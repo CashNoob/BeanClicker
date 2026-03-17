@@ -2,17 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Bean Clicker</title>
 </head>
-
 <body>
-    <header>
-        <h1>Bean Clicker</h1>
-        <h1 id="beans">0</h1>
-    </header>
-    <main>
-        <img id="beanpic"src="bean.png" alt="Bean"
-    </main>
+    <div class="ui">
+
+        <div class="leftbox panel">
+            <div class="panel-header">
+                <h2>Leaderboard</h2>
+            </div>
+            <div class="panel-content" id="leaderboard"></div>
+        </div>
+
+        <div class="mainbox">
+            <h1 class="title">Bean Clicker</h1>
+            <div class="bean-count-wrap">
+                <span class="bean-count" id="beans">0</span>
+                <span class="bean-label">beans</span>
+            </div>
+            <div class="bean-wrap">
+                <img class="bean" id="beanpic" src="bean.png" alt="Bean">
+            </div>
+            <p class="cps-label" id="cps">0 beans per second</p>
+        </div>
+
+        <div class="rightbox panel">
+            <div class="panel-header">
+                <h2>Upgrades</h2>
+            </div>
+            <div class="panel-content" id="upgrades"></div>
+        </div>
+
+    </div>
     <script src="main.js"></script>
 </body>
+</html>
