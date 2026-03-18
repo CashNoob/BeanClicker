@@ -91,6 +91,202 @@
 
 </div>
 
+<nav class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-btn" onclick="openMobilePanel('shop', this)">
+        <span class="nav-icon">🛒</span>Shop
+    </button>
+    <button class="mobile-nav-btn" onclick="openMobilePanel('ach', this)">
+        <span class="nav-icon">🏆</span>Achv
+    </button>
+    <button class="mobile-nav-btn" onclick="openMobilePanel('prestige', this)">
+        <span class="nav-icon">🔁</span>Prestige
+    </button>
+    <button class="mobile-nav-btn" onclick="openMobilePanel('lb', this)">
+        <span class="nav-icon">🌍</span>Board
+    </button>
+</nav>
+ 
+<!-- Mobile Shop Panel -->
+<div class="mobile-panel" id="mobileShopPanel">
+    <div class="mobile-panel-header">
+        <span class="mobile-panel-title">🛒 Shop</span>
+        <button class="mobile-panel-close" onclick="closeMobilePanel()">✕</button>
+    </div>
+    <div class="mobile-panel-body">
+        <div class="upgrade-list" id="upgradeListMobile"></div>
+    </div>
+</div>
+ 
+<!-- Mobile Achievements Panel -->
+<div class="mobile-panel" id="mobileAchPanel">
+    <div class="mobile-panel-header">
+        <span class="mobile-panel-title">🏆 Achievements</span>
+        <button class="mobile-panel-close" onclick="closeMobilePanel()">✕</button>
+    </div>
+    <div class="mobile-panel-body">
+        <div id="achievementListMobile" class="achievement-list"></div>
+    </div>
+</div>
+ 
+<!-- Mobile Prestige Panel -->
+<div class="mobile-panel" id="mobilePrestigePanel">
+    <div class="mobile-panel-header">
+        <span class="mobile-panel-title">🔁 Prestige</span>
+        <button class="mobile-panel-close" onclick="closeMobilePanel()">✕</button>
+    </div>
+    <div class="mobile-panel-body">
+        <div class="prestige-body">
+            <p class="prestige-desc">Reset at <strong>level 100</strong> for a permanent <strong>+10% bean bonus</strong> that stacks. Each prestige makes leveling <strong>20% harder</strong>.</p>
+            <div id="prestigeInfoMobile" class="prestige-info">No prestiges yet.</div>
+            <button id="prestigeBtnMobile" class="prestige-btn" onclick="prestige()">✦ PRESTIGE</button>
+        </div>
+    </div>
+</div>
+ 
+<!-- Mobile Leaderboard Panel -->
+<div class="mobile-panel" id="mobileLeaderboardPanel">
+    <div class="mobile-panel-header">
+        <span class="mobile-panel-title">🌍 Leaderboard</span>
+        <button class="mobile-panel-close" onclick="closeMobilePanel()">✕</button>
+    </div>
+    <div class="mobile-panel-body">
+        <div class="leaderboard-body">
+            <div id="usernameSection2" class="username-section">
+                <input id="usernameInputMobile" class="username-input" type="text" placeholder="your name..." maxlength="16">
+                <button class="username-btn" onclick="saveUsernameMobile()">GO</button>
+            </div>
+            <div id="currentUserMobile" class="current-user" style="display:none"></div>
+            <button class="refresh-btn" onclick="loadLeaderboard()">↻ Refresh</button>
+            <div id="leaderboardListMobile" class="leaderboard-list">
+                <div class="lb-loading">loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<script>
+// ── Mobile panel controller ──
+let _activeMobileBtn = null;
+ 
+function openMobilePanel(name, btn) {
+    const panels = {
+        shop:    'mobileShopPanel',
+        ach:     'mobileAchPanel',
+        prestige:'mobilePrestigePanel',
+        lb:      'mobileLeaderboardPanel',
+    };
+ 
+    // Toggle: tap same button again to close
+    if (_activeMobileBtn === btn) {
+        closeMobilePanel();
+        return;
+    }
+ 
+    // Close any open panel
+    document.querySelectorAll('.mobile-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+ 
+    document.getElementById(panels[name]).classList.add('open');
+    btn.classList.add('active');
+    _activeMobileBtn = btn;
+ 
+    // Sync leaderboard list into mobile panel
+    if (name === 'lb') {
+        syncLeaderboardMobile();
+        syncUsernameMobile();
+    }
+    if (name === 'ach') {
+        syncAchievementsMobile();
+    }
+    if (name === 'shop') {
+        syncShopMobile();
+    }
+    if (name === 'prestige') {
+        syncPrestigeMobile();
+    }
+}
+ 
+function closeMobilePanel() {
+    document.querySelectorAll('.mobile-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+    _activeMobileBtn = null;
+}
+ 
+// Sync helpers — clone inner HTML from desktop panels to mobile panels
+function syncLeaderboardMobile() {
+    const src = document.getElementById('leaderboardList');
+    const dst = document.getElementById('leaderboardListMobile');
+    if (src && dst) dst.innerHTML = src.innerHTML;
+}
+ 
+function syncUsernameMobile() {
+    const desktopCU = document.getElementById('currentUser');
+    const mobileCU  = document.getElementById('currentUserMobile');
+    const desktopSec = document.getElementById('usernameSection');
+    const mobileSec  = document.getElementById('usernameSection2');
+    if (desktopCU && mobileCU) {
+        mobileCU.innerHTML = desktopCU.innerHTML;
+        mobileCU.style.display = desktopCU.style.display;
+    }
+    if (desktopSec && mobileSec) {
+        mobileSec.style.display = desktopSec.style.display;
+    }
+}
+ 
+function syncAchievementsMobile() {
+    const src = document.getElementById('achievementList');
+    const dst = document.getElementById('achievementListMobile');
+    if (src && dst) dst.innerHTML = src.innerHTML;
+}
+ 
+function syncShopMobile() {
+    const src = document.getElementById('upgradeList');
+    const dst = document.getElementById('upgradeListMobile');
+    if (src && dst) dst.innerHTML = src.innerHTML;
+    // Re-attach click handlers — clone doesn't copy event listeners
+    // So wire up clicks by re-delegating to desktop list
+    if (dst) {
+        dst.querySelectorAll('.upgrade-card').forEach((card, i) => {
+            card.onclick = () => {
+                const desktopCard = document.getElementById('upgradeList')
+                    .querySelectorAll('.upgrade-card')[i];
+                if (desktopCard) desktopCard.click();
+                // Re-sync after purchase
+                setTimeout(() => syncShopMobile(), 50);
+            };
+        });
+    }
+}
+ 
+function syncPrestigeMobile() {
+    const src = document.getElementById('prestigeInfo');
+    const dst = document.getElementById('prestigeInfoMobile');
+    if (src && dst) dst.innerHTML = src.innerHTML;
+}
+ 
+function saveUsernameMobile() {
+    const input = document.getElementById('usernameInputMobile');
+    if (input) {
+        document.getElementById('usernameInput').value = input.value;
+        saveUsername(); // call main.js function
+        setTimeout(syncUsernameMobile, 100);
+    }
+}
+ 
+// Auto-sync mobile panels when leaderboard updates
+const _origLoadLB = window.loadLeaderboard;
+// We'll hook into DOM mutations on leaderboardList instead
+const _lbObserver = new MutationObserver(() => {
+    if (document.getElementById('mobileLeaderboardPanel').classList.contains('open')) {
+        syncLeaderboardMobile();
+    }
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const lbList = document.getElementById('leaderboardList');
+    if (lbList) _lbObserver.observe(lbList, { childList: true, subtree: true });
+});
+</script>
+
 <script src="main.js" type="module"></script>
 </body>
 </html>
