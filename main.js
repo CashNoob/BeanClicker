@@ -6,7 +6,6 @@ import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from 
 import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent } from './firebase.js';
 
 // Temporary reset: clear all localStorage data on load
-/*localStorage.clear();*/
 
 // ── Storage helpers ──
 const ls = {
