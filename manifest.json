@@ -1,0 +1,23 @@
+{
+  "name": "Bean Clicker",
+  "short_name": "Bean Clicker",
+  "description": "Tap the bean!",
+  "start_url": "/BeanClicker/",
+  "scope": "/BeanClicker/",
+  "display": "standalone",
+  "background_color": "#2e5e2e",
+  "theme_color": "#2e5e2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
