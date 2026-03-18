@@ -212,11 +212,17 @@ body {
 }
 
 .top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 8px;
+    padding-top: 35px;
+    z-index: 10;
 }
 
 /* ── Level display ── */
@@ -691,106 +697,41 @@ body {
 }
 
 /* ── Mobile ── */
-@media (max-width: 768px) {
-    html, body { overflow: auto; height: auto; }
-
+@media (max-width: 600px) {
     .ui {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
         height: auto;
-        min-height: 100vh;
+        min-height: calc(100vh - 53px);
+        flex-direction: column;
     }
 
-    /* Shop on top, compact */
     .leftbox {
         width: 100%;
         min-width: unset;
-        max-height: 28vh;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+        max-height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .sidebar-title {
-        padding: 8px 12px;
-        font-size: 0.95rem;
-    }
-
-    .upgrade-list { padding: 6px; gap: 4px; }
-
-    .upgrade-card { padding: 6px 10px; }
-
-    .card-name { font-size: 0.72rem; }
-    .card-cost { font-size: 0.6rem; }
-    .card-count { font-size: 0.8rem; }
-
-    /* Hide tooltips on mobile — no hover */
-    .card-tooltip { display: none; }
-
-    /* Main click area */
     .mainbox {
-        min-height: 45vh;
-        flex-shrink: 0;
+        min-height: 50vh;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .main-inner { gap: 4px; padding: 12px; }
-
-    .top-bar {
-        padding: 8px 12px 0;
-    }
-
-    .bean-count {
-        font-size: clamp(2.2rem, 10vw, 3.5rem);
-    }
-
-    .bean {
-        width: clamp(100px, 28vw, 160px);
-    }
-
-    .level-bar-wrap { width: 50px; }
-
-    .level-next { display: none; }
-
-    /* Right sidebar — tabs always visible */
     .rightbox {
         width: 100%;
         min-width: unset;
-        flex: 1;
-        min-height: 35vh;
-        box-shadow: none;
-        border-top: 2px solid rgba(255,255,255,0.1);
+        max-height: 50vh;
     }
 
-    .tab-bar {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
+    .card-tooltip { display: none; }
 
-    .tab-btn {
-        padding: 12px 4px;
-        font-size: 0.72rem;
-    }
+    .level-next { display: none; }
 
-    .tab-panel {
-        max-height: none;
-        overflow-y: auto;
-    }
+    .level-bar-wrap { width: 50px; }
 
-    /* Bigger touch targets for leaderboard */
-    .username-btn, .refresh-btn {
-        padding: 10px 14px;
-        font-size: 0.9rem;
-    }
-
-    .username-input {
-        padding: 10px;
-        font-size: 0.8rem;
-    }
-
-    .prestige-btn {
-        padding: 14px;
-        font-size: 1.1rem;
-    }
-
-    /* Toast at top on mobile so it doesn't get hidden */
     .toast-container {
         bottom: auto;
         top: 20px;
