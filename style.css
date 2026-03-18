@@ -208,6 +208,7 @@ body {
     position: relative;
     z-index: 1;
     padding: 20px;
+    padding-top: 60px;
     width: 100%;
 }
 
@@ -698,6 +699,10 @@ body {
 
 /* ── Mobile ── */
 @media (max-width: 600px) {
+    html, body {
+        overflow: auto;
+        height: auto;
+    }
     .ui {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;
@@ -723,7 +728,8 @@ body {
     .rightbox {
         width: 100%;
         min-width: unset;
-        max-height: 50vh;
+        min-height: 45vh;
+        max-height: none;
     }
 
     .card-tooltip { display: none; }
