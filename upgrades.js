@@ -1,9 +1,8 @@
-// upgrades.js — all upgrade data for Bean Clicker
 export const upgrades = {
     soilpatch: {
         name: "Soil Patch",
         emoji: "🌱",
-        cost: 15,
+        cost: 25,
         bps: 1,
         bpc: 0,
         owned: 0,
@@ -13,7 +12,7 @@ export const upgrades = {
     wateringcan: {
         name: "Watering Can",
         emoji: "💧",
-        cost: 25,
+        cost: 50,
         bps: 0,
         bpc: 2,
         owned: 0,
@@ -23,8 +22,8 @@ export const upgrades = {
     compostbin: {
         name: "Compost Bin",
         emoji: "♻️",
-        cost: 100,
-        bps: 4,
+        cost: 200,
+        bps: 5,
         bpc: 0,
         owned: 0,
         unlockLevel: 3,
@@ -33,9 +32,9 @@ export const upgrades = {
     handtrowel: {
         name: "Hand Trowel",
         emoji: "🪚",
-        cost: 200,
+        cost: 400,
         bps: 0,
-        bpc: 6,
+        bpc: 8,
         owned: 0,
         unlockLevel: 4,
         desc: "A sturdy trowel lets you dig up more beans per click."
@@ -43,8 +42,8 @@ export const upgrades = {
     greenhouse: {
         name: "Greenhouse",
         emoji: "🏡",
-        cost: 700,
-        bps: 15,
+        cost: 1500,
+        bps: 18,
         bpc: 0,
         owned: 0,
         unlockLevel: 6,
@@ -53,9 +52,9 @@ export const upgrades = {
     beanfarmer: {
         name: "Bean Farmer",
         emoji: "👨‍🌾",
-        cost: 1200,
+        cost: 3000,
         bps: 0,
-        bpc: 20,
+        bpc: 25,
         owned: 0,
         unlockLevel: 8,
         desc: "A seasoned farmer who knows exactly where the best beans hide."
@@ -63,8 +62,8 @@ export const upgrades = {
     irrigation: {
         name: "Irrigation System",
         emoji: "🚿",
-        cost: 4000,
-        bps: 60,
+        cost: 9000,
+        bps: 75,
         bpc: 0,
         owned: 0,
         unlockLevel: 10,
@@ -73,9 +72,9 @@ export const upgrades = {
     magicfertilizer: {
         name: "Magic Fertilizer",
         emoji: "✨",
-        cost: 8000,
+        cost: 20000,
         bps: 0,
-        bpc: 80,
+        bpc: 100,
         owned: 0,
         unlockLevel: 12,
         desc: "Enchanted compost of unknown origin. Your clicks feel electric."
@@ -83,8 +82,8 @@ export const upgrades = {
     beanfactory: {
         name: "Bean Factory",
         emoji: "🏭",
-        cost: 22000,
-        bps: 200,
+        cost: 60000,
+        bps: 250,
         bpc: 0,
         owned: 0,
         unlockLevel: 15,
@@ -93,9 +92,9 @@ export const upgrades = {
     beanlab: {
         name: "Bean Lab",
         emoji: "🔬",
-        cost: 45000,
+        cost: 130000,
         bps: 0,
-        bpc: 280,
+        bpc: 350,
         owned: 0,
         unlockLevel: 18,
         desc: "Scientists here have isolated the double-click gene."
@@ -103,8 +102,8 @@ export const upgrades = {
     automatedpicker: {
         name: "Automated Picker",
         emoji: "🤖",
-        cost: 130000,
-        bps: 650,
+        cost: 400000,
+        bps: 800,
         bpc: 0,
         owned: 0,
         unlockLevel: 21,
@@ -113,9 +112,9 @@ export const upgrades = {
     beandrone: {
         name: "Bean Drone",
         emoji: "🚁",
-        cost: 260000,
+        cost: 900000,
         bps: 0,
-        bpc: 900,
+        bpc: 1200,
         owned: 0,
         unlockLevel: 25,
         desc: "Aerial reconnaissance drones locate and extract premium beans."
@@ -123,8 +122,8 @@ export const upgrades = {
     beanmine: {
         name: "Bean Mine",
         emoji: "⛏️",
-        cost: 750000,
-        bps: 2200,
+        cost: 2500000,
+        bps: 3000,
         bpc: 0,
         owned: 0,
         unlockLevel: 29,
@@ -133,9 +132,9 @@ export const upgrades = {
     magicbeanstalk: {
         name: "Magic Beanstalk",
         emoji: "🌿",
-        cost: 1500000,
+        cost: 6000000,
         bps: 0,
-        bpc: 3000,
+        bpc: 4500,
         owned: 0,
         unlockLevel: 33,
         desc: "Climbs to the clouds. Each click harvests a giant's share."
@@ -143,8 +142,8 @@ export const upgrades = {
     beanreactor: {
         name: "Bean Reactor",
         emoji: "⚛️",
-        cost: 5000000,
-        bps: 7500,
+        cost: 18000000,
+        bps: 10000,
         bpc: 0,
         owned: 0,
         unlockLevel: 38,
@@ -153,9 +152,9 @@ export const upgrades = {
     timeharvester: {
         name: "Time Harvester",
         emoji: "⏱️",
-        cost: 10000000,
+        cost: 40000000,
         bps: 0,
-        bpc: 9000,
+        bpc: 14000,
         owned: 0,
         unlockLevel: 43,
         desc: "Briefly loops time on each click, harvesting beans twice."
@@ -163,8 +162,8 @@ export const upgrades = {
     beansatellite: {
         name: "Bean Satellite",
         emoji: "🛸",
-        cost: 35000000,
-        bps: 390000,
+        cost: 120000000,
+        bps: 500000,
         bpc: 0,
         owned: 0,
         unlockLevel: 49,
@@ -173,9 +172,9 @@ export const upgrades = {
     darkmatterbean: {
         name: "Dark Matter Bean",
         emoji: "🌑",
-        cost: 70000000,
+        cost: 280000000,
         bps: 0,
-        bpc: 780000,
+        bpc: 1000000,
         owned: 0,
         unlockLevel: 55,
         desc: "Exists between clicks. You don't understand it. It works."
@@ -183,8 +182,8 @@ export const upgrades = {
     beandimension: {
         name: "Bean Dimension",
         emoji: "🌀",
-        cost: 220000000,
-        bps: 2400000,
+        cost: 800000000,
+        bps: 3200000,
         bpc: 0,
         owned: 0,
         unlockLevel: 61,
@@ -193,9 +192,9 @@ export const upgrades = {
     quantumbean: {
         name: "Quantum Bean",
         emoji: "🔮",
-        cost: 440000000,
+        cost: 1800000000,
         bps: 0,
-        bpc: 4900000,
+        bpc: 7000000,
         owned: 0,
         unlockLevel: 67,
         desc: "Exists in all states until clicked. Collapses into billions."
@@ -203,8 +202,8 @@ export const upgrades = {
     beangalaxy: {
         name: "Bean Galaxy",
         emoji: "🌌",
-        cost: 1400000000,
-        bps: 15000000,
+        cost: 5000000000,
+        bps: 20000000,
         bpc: 0,
         owned: 0,
         unlockLevel: 72,
@@ -213,9 +212,9 @@ export const upgrades = {
     beansingularity: {
         name: "Bean Singularity",
         emoji: "🕳️",
-        cost: 3000000000,
+        cost: 12000000000,
         bps: 0,
-        bpc: 33000000,
+        bpc: 45000000,
         owned: 0,
         unlockLevel: 77,
         desc: "A black hole that only attracts beans. Each click extracts millions."
@@ -223,8 +222,8 @@ export const upgrades = {
     beangod: {
         name: "Bean God",
         emoji: "👑",
-        cost: 10000000000,
-        bps: 110000000,
+        cost: 40000000000,
+        bps: 150000000,
         bpc: 0,
         owned: 0,
         unlockLevel: 82,
@@ -233,9 +232,9 @@ export const upgrades = {
     omniseed: {
         name: "Omniseed",
         emoji: "🌟",
-        cost: 25000000000,
+        cost: 100000000000,
         bps: 0,
-        bpc: 280000000,
+        bpc: 400000000,
         owned: 0,
         unlockLevel: 86,
         desc: "The seed from which all beans were born. Each click rewrites history."
@@ -243,8 +242,8 @@ export const upgrades = {
     thebigbean: {
         name: "The Big Bean",
         emoji: "🫘",
-        cost: 80000000000,
-        bps: 890000000,
+        cost: 350000000000,
+        bps: 1200000000,
         bpc: 0,
         owned: 0,
         unlockLevel: 90,
@@ -253,9 +252,9 @@ export const upgrades = {
     beanmultiverse: {
         name: "Bean Multiverse",
         emoji: "♾️",
-        cost: 200000000000,
+        cost: 900000000000,
         bps: 0,
-        bpc: 2200000000,
+        bpc: 3000000000,
         owned: 0,
         unlockLevel: 93,
         desc: "Infinite parallel universes, each one full of beans. All yours."
@@ -263,8 +262,8 @@ export const upgrades = {
     eternalharvest: {
         name: "Eternal Harvest",
         emoji: "🔄",
-        cost: 650000000000,
-        bps: 7200000000,
+        cost: 2800000000000,
+        bps: 10000000000,
         bpc: 0,
         owned: 0,
         unlockLevel: 95,
@@ -273,9 +272,9 @@ export const upgrades = {
     beaninfinity: {
         name: "Bean Infinity",
         emoji: "💫",
-        cost: 1800000000000,
+        cost: 7500000000000,
         bps: 0,
-        bpc: 20000000000,
+        bpc: 28000000000,
         owned: 0,
         unlockLevel: 97,
         desc: "Beyond comprehension. Beyond counting. Just beans, forever."
@@ -283,8 +282,8 @@ export const upgrades = {
     beanpocalypse: {
         name: "Beanpocalypse",
         emoji: "💥",
-        cost: 6000000000000,
-        bps: 67000000000,
+        cost: 25000000000000,
+        bps: 95000000000,
         bpc: 0,
         owned: 0,
         unlockLevel: 99,
@@ -293,11 +292,12 @@ export const upgrades = {
     thefinalbean: {
         name: "The Final Bean",
         emoji: "🏆",
-        cost: 20000000000000,
-        bps: 67000000000,
-        bpc: 67000000000,
+        cost: 80000000000000,
+        bps: 95000000000,
+        bpc: 95000000000,
         owned: 0,
         unlockLevel: 100,
         desc: "There is only the bean. There has only ever been the bean."
     },
 };
+ 

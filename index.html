@@ -10,6 +10,7 @@
     <meta name="theme-color" content="#2e5e2e">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="tooltips.css">
+    <link rel="stylesheet" href="themes.css">
     <link rel="icon" href="icon.png" type="image/png">
     <title>Bean Clicker</title>
 </head>
@@ -31,8 +32,18 @@
 <div class="ui">
 
     <div class="leftbox">
-        <div class="sidebar-title">🛒 Shop</div>
-        <div class="upgrade-list" id="upgradeList"></div>
+        <div class="sidebar-tab-bar">
+            <button class="sidebar-tab-btn active" onclick="switchShopTab('default', this)">🛒 Shop</button>
+            <button class="sidebar-tab-btn" id="worldUpgradeTab" style="display:none" onclick="switchShopTab('world', this)">🌍 World</button>
+        </div>
+ 
+        <div id="shopTabDefault" class="sidebar-tab-panel active">
+            <div class="upgrade-list" id="upgradeList"></div>
+        </div>
+ 
+        <div id="shopTabWorld" class="sidebar-tab-panel">
+            <div class="upgrade-list" id="worldUpgradeList"></div>
+        </div>
     </div>
 
     <div class="mainbox">
@@ -56,9 +67,10 @@
 
     <div class="rightbox">
         <div class="tab-bar">
-            <button class="tab-btn active" data-tab="achievements" onclick="switchTab('achievements', this)">🏆 Achv</button>
-            <button class="tab-btn" data-tab="prestige"      onclick="switchTab('prestige', this)">🔁 Prestige</button>
-            <button class="tab-btn" data-tab="leaderboard"   onclick="switchTab('leaderboard', this)">🌍 Board</button>
+            <button class="tab-btn active" onclick="switchTab('achievements', this)">🏆 Achv</button>
+            <button class="tab-btn" onclick="switchTab('prestige', this)">🔁 Prestige</button>
+            <button class="tab-btn" onclick="switchTab('pshop', this)">✦ Shop</button>
+            <button class="tab-btn" onclick="switchTab('leaderboard', this)">🌍 Board</button>
         </div>
 
         <div id="tab-achievements" class="tab-panel active">
@@ -69,12 +81,21 @@
         <div id="tab-prestige" class="tab-panel">
             <div class="panel-title">Prestige</div>
             <div class="prestige-body">
-                <p class="prestige-desc">Reset at <strong>level 100</strong> for a permanent <strong>+10% bean bonus</strong> that stacks. Each prestige makes leveling <strong>20% harder</strong>.</p>
+                <p class="prestige-desc">Reset at <strong>level 100</strong> for a permanent <strong>+10% bean bonus</strong>. Each prestige makes leveling <strong>20% harder</strong>.</p>
                 <div id="prestigeInfo" class="prestige-info">No prestiges yet.</div>
-                <button id="prestigeBtn" class="prestige-btn" onclick="prestige()">✦ PRESTIGE</button>
+                <button class="prestige-btn" onclick="prestige()">✦ PRESTIGE</button>
             </div>
         </div>
 
+        <div id="tab-pshop" class="tab-panel">
+            <div class="panel-title">Prestige Shop</div>
+            <div class="prestige-body">
+                <div id="ppDisplay"></div>
+                <div id="prestigeShopList"></div>
+                <hr>
+                <div id="themeSelector"></div>
+            </div>
+        </div>
         <div id="tab-leaderboard" class="tab-panel">
             <div class="panel-title">Leaderboard</div>
             <div class="leaderboard-body">
@@ -97,6 +118,7 @@
     <button class="mobile-fab" onclick="openMobilePanel('shop', this)" title="Shop">🛒</button>
     <button class="mobile-fab" onclick="openMobilePanel('ach', this)" title="Achievements">🏆</button>
     <button class="mobile-fab" onclick="openMobilePanel('prestige', this)" title="Prestige">🔁</button>
+    <button class="mobile-fab" onclick="openMobilePanel('pshop', this)" title="Prestige Shop">✦</button>
     <button class="mobile-fab" onclick="openMobilePanel('lb', this)" title="Leaderboard">🌍</button>
 </div>
  
@@ -136,6 +158,19 @@
         </div>
     </div>
 </div>
+
+<div class="mobile-panel" id="mobilePshopPanel">
+    <div class="mobile-panel-header">
+        <span class="mobile-panel-title">✦ Prestige Shop</span>
+        <button class="mobile-panel-close" onclick="closeMobilePanel()">✕</button>
+    </div>
+    <div class="mobile-panel-body">
+        <div id="ppDisplayMobile"></div>
+        <div id="prestigeShopListMobile"></div>
+        <hr>
+        <div id="themeSelectorMobile"></div>
+    </div>
+</div>
  
 <!-- Mobile Leaderboard Panel -->
 <div class="mobile-panel" id="mobileLeaderboardPanel">
@@ -167,6 +202,7 @@ function openMobilePanel(name, btn) {
         shop:     'mobileShopPanel',
         ach:      'mobileAchPanel',
         prestige: 'mobilePrestigePanel',
+        pshop:    'mobilePshopPanel',
         lb:       'mobileLeaderboardPanel',
     };
  
@@ -189,6 +225,7 @@ function openMobilePanel(name, btn) {
     if (name === 'ach')      { syncAchievementsMobile(); }
     if (name === 'shop')     { syncShopMobile(); }
     if (name === 'prestige') { syncPrestigeMobile(); }
+    if (name === 'pshop') { syncPshopMobile(); }
 }
  
 function closeMobilePanel() {
@@ -198,6 +235,43 @@ function closeMobilePanel() {
     document.getElementById('mobileFabGroup').style.display = 'flex';
 }
  
+function syncPshopMobile() {
+    const ppSrc   = document.getElementById('ppDisplay');
+    const ppDst   = document.getElementById('ppDisplayMobile');
+    const shopSrc = document.getElementById('prestigeShopList');
+    const shopDst = document.getElementById('prestigeShopListMobile');
+    const themeSrc = document.getElementById('themeSelector');
+    const themeDst = document.getElementById('themeSelectorMobile');
+
+    if (ppSrc && ppDst) ppDst.textContent = ppSrc.textContent;
+    if (shopSrc && shopDst) {
+        shopDst.innerHTML = shopSrc.innerHTML;
+        shopDst.querySelectorAll('.pshop-card').forEach((card, i) => {
+            card.onclick = () => {
+                shopSrc.querySelectorAll('.pshop-card')[i]?.click();
+                setTimeout(() => syncPshopMobile(), 50);
+            };
+        });
+    }
+    if (themeSrc && themeDst) {
+        themeDst.innerHTML = themeSrc.innerHTML;
+        themeDst.querySelectorAll('.theme-btn:not(.theme-locked)').forEach((btn, i) => {
+            btn.onclick = () => {
+                themeSrc.querySelectorAll('.theme-btn:not(.theme-locked)')[i]?.click();
+                setTimeout(() => syncPshopMobile(), 50);
+            };
+        });
+    }
+}l
+
+function switchShopTab(name, btn) {
+    document.querySelectorAll('.sidebar-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('shopTabDefault').classList.toggle('active', name === 'default');
+    document.getElementById('shopTabWorld').classList.toggle('active', name === 'world');
+}
+window.switchShopTab = switchShopTab;
+
 // Sync helpers — clone inner HTML from desktop panels to mobile panels
 function syncLeaderboardMobile() {
     const src = document.getElementById('leaderboardList');

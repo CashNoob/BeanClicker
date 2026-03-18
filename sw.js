@@ -1,12 +1,16 @@
-const CACHE_NAME = 'bean-clicker-v1';
+const CACHE_NAME = 'bean-clicker-v1.1';
 
 const ASSETS = [
     './',
     './index.html',
     './style.css',
     './tooltips.css',
+    './themes.css',
     './main.js',
     './upgrades.js',
+    './upgrades-space.js',
+    './themes.js',
+    './prestigeShop.js',
     './firebase.js',
     './bean.png',
     './bean.m4a',
