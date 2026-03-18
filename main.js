@@ -670,12 +670,16 @@ function showUsernameDisplay(name) {
     document.getElementById('usernameSection').style.display = 'none';
     const el = document.getElementById('currentUser');
     el.style.display = 'block';
-    el.innerHTML = `<span class="current-user-name">✦ ${name}</span> <span class="current-user-change" onclick="changeUsername()">change</span>`;
+    el.innerHTML = `<span class="current-user-name">✦ ${escapeHtml(name)}</span> <span class="current-user-change" onclick="changeUsername()">change</span>`;
 }
 
 function changeUsername() {
     document.getElementById('usernameSection').style.display = 'flex';
     document.getElementById('currentUser').style.display    = 'none';
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 let lastLBSubmit = 0;
