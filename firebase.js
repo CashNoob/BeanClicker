@@ -4,13 +4,12 @@ import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limi
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDvwPbHf_4AAtdctHtqTBMI_BP-XMw9v5M",
-    authDomain: "beanclicker-fe8eb.firebaseapp.com",
-    projectId: "beanclicker-fe8eb",
-    storageBucket: "beanclicker-fe8eb.firebasestorage.app",
-    messagingSenderId: "558728648355",
-    appId: "1:558728648355:web:99e6cfc30b3443fa319116",
-    measurementId: "G-XDBSWPFSJL"
+  apiKey: "AIzaSyBJuBouFP_2Ek6pVpMkY8-WEruoL6BFXGU",
+  authDomain: "beanclicker-9f73e.firebaseapp.com",
+  projectId: "beanclicker-9f73e",
+  storageBucket: "beanclicker-9f73e.firebasestorage.app",
+  messagingSenderId: "277546990541",
+  appId: "1:277546990541:web:f95ab0aed6baa825fea284"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -26,14 +25,17 @@ function getPlayerId() {
 }
 
 export async function submitScore(username, level, totalBeans, prestigeCount) {
+    const data = {
+        username,
+        level,
+        totalBeans,
+        prestigeCount,
+        updatedAt: Date.now()
+    };
+    console.log("Submitting data:", data);
     try {
-        await setDoc(doc(db, "bean_leaderboard", getPlayerId()), {
-            username,
-            level,
-            totalBeans,
-            prestigeCount,
-            updatedAt: Date.now()
-        });
+        await setDoc(doc(db, "bean_leaderboard", getPlayerId()), data);
+        console.log("Score submitted successfully");
     } catch (e) {
         console.error("Score submit failed:", e);
     }
