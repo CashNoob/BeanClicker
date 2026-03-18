@@ -37,6 +37,8 @@ let activeThemeId        = ls.str("beanTheme", "default");
 
 let prestigeEffects = getPrestigeEffects();
 
+let leaderboardInterval = null;
+
 function getPrestigeMulti() {
     return 1 + (prestigeCount * prestigeEffects.prestigePerRun);
 }
@@ -403,12 +405,16 @@ function buildUpgradeList(containerId, upgradeSet, isWorld) {
                 <span class="card-count">${u.owned}</span>
             </div>
             <div class="card-cost">🫘 ${fmt(u.cost)}</div>
+            <div class="card-stat">${statType}</div>
             <div class="card-tooltip">
                 <div class="tooltip-stat">${statType}</div>
                 <div class="tooltip-desc">${u.desc}</div>
                 <div class="tooltip-unlock">Unlocks at level ${u.unlockLevel}</div>
             </div>
         `;
+        if (beanAmount < u.cost) {
+            card.classList.add('insufficient-funds');
+        }
         card.addEventListener('click', () => buyUpgrade(id, isWorld ? upgradeSet : null));
         list.appendChild(card);
     }
@@ -667,7 +673,17 @@ function switchTab(tabName, btn) {
     btn.classList.add('active');
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('tab-' + tabName).classList.add('active');
-    if (tabName === 'leaderboard') loadLeaderboard();
+    if (tabName === 'leaderboard') {
+        loadLeaderboard();
+        if (!leaderboardInterval) {
+            leaderboardInterval = setInterval(loadLeaderboard, 60000); // Auto-update every 60 seconds
+        }
+    } else {
+        if (leaderboardInterval) {
+            clearInterval(leaderboardInterval);
+            leaderboardInterval = null;
+        }
+    }
     if (tabName === 'pshop') { buildPrestigeShop(); buildThemeSelector(); }
 }
 
