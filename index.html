@@ -272,7 +272,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lbList) _lbObserver.observe(lbList, { childList: true, subtree: true });
 });
 </script>
-
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js');
+    });
+  }
+</script>
 <script src="main.js" type="module"></script>
 </body>
 </html>
