@@ -333,7 +333,7 @@ body {
 }
 
 .bean {
-    width: clamp(120px, 22vw, 200px);
+    width: clamp(100px, 25vw, 120px);
     display: block;
     animation: bean-pulse 2s ease-in-out infinite;
     transform-origin: center bottom;
