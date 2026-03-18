@@ -4,6 +4,7 @@ const bean = document.querySelector(".bean");
 let beanAmount = parseInt(localStorage.getItem('beans')) || 0;
 let beanDisplay = document.getElementById("beans");
 let beanPic = document.getElementById("beanpic");
+const beanSound = new Audio('bean.m4a');
 
 /*--Functions--*/
 
@@ -11,7 +12,14 @@ function beanclicker() {
     beanAmount++;
     beanDisplay.textContent = beanAmount;
     localStorage.setItem('beans', beanAmount);
+    playAudio();
     spawnFloatText();
+}
+
+function playAudio() {
+    const sound = beanSound.cloneNode();
+    sound.volume = 1;
+    sound.play();
 }
 
 function spawnFloatText() {
