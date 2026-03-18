@@ -5,6 +5,9 @@ import { upgradesSpace } from './upgrades-space.js';
 import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from './prestigeShop.js';
 import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent } from './firebase.js';
 
+// Temporary reset: clear all localStorage data on load
+localStorage.clear();
+
 // ── Storage helpers ──
 const ls = {
     get:     (k, fallback = 0) => { const v = localStorage.getItem(k); return v !== null ? Number(v) : fallback; },
@@ -345,14 +348,27 @@ function updateCardText(id, upgradeSet = null) {
 }
 
 function updatePrestigeDisplay() {
-    const el = document.getElementById("prestigeInfo");
-    if (!el) return;
+    const el       = document.getElementById("prestigeInfo");
     const scalePct = Math.round((prestigeScaling() - 1) * 100);
     const pp       = computePP(prestigeCount);
     const perRun   = Math.round(prestigeEffects.prestigePerRun * 100);
-    el.textContent = prestigeCount > 0
-        ? `✦ ${prestigeCount} Prestige${prestigeCount !== 1 ? 's' : ''} · +${Math.round((getPrestigeMulti() - 1) * 100)}% beans · Levels +${scalePct}% harder · ${pp} PP total`
-        : `No prestiges yet. Each prestige resets progress but gives +${perRun}% beans permanently.`;
+
+    const descEl = document.getElementById("prestigeDesc");
+    if (descEl) {
+        descEl.innerHTML = `Reset at <strong>level ${getMaxLevel()}</strong> for a permanent <strong>+${perRun}% bean bonus</strong>. Each prestige makes leveling <strong>20% harder</strong>.`;
+    }
+
+    if (el) {
+        el.textContent = prestigeCount > 0
+            ? `✦ ${prestigeCount} Prestige${prestigeCount !== 1 ? 's' : ''} · +${Math.round((getPrestigeMulti() - 1) * 100)}% beans · Levels +${scalePct}% harder · ${pp} PP total`
+            : `No prestiges yet. Each prestige resets progress but gives +${perRun}% beans permanently.`;
+    }
+
+    // Keep mobile in sync if prestige panel is open
+    const descDst = document.getElementById("prestigeDescMobile");
+    if (descEl && descDst) descDst.innerHTML = descEl.innerHTML;
+    const dstInfo = document.getElementById("prestigeInfoMobile");
+    if (el && dstInfo) dstInfo.textContent = el.textContent;
 }
 
 // ── Build upgrade cards ──
