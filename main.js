@@ -52,17 +52,16 @@ const beanSound   = new Audio('bean.m4a');
 function buildThresholds() {
     const t = [0];
     let val = 30;
-    for (let i = 1; i < 100; i++) {
+    for (let i = 1; i < 600; i++) {
         t.push(Math.floor(val));
-        if      (i < 20) val *= 1.45;
-        else if (i < 50) val *= 1.35;
-        else if (i < 75) val *= 1.28;
-        else              val *= 1.22;
+        val *= 1.5;
     }
     return t;
 }
 const levelThresholds = buildThresholds();
-
+function getMaxLevel() {
+    return 100 + (prestigeCount * 50);
+}
 function prestigeScaling() { return Math.pow(1.2, prestigeCount); }
 
 function getLevel() {
@@ -72,12 +71,12 @@ function getLevel() {
         if (totalEarned >= levelThresholds[i] * scale) level = i + 1;
         else break;
     }
-    return Math.min(level, 100);
+    return Math.min(level, getMaxLevel());
 }
 
 function getNextThreshold() {
     const lvl = getLevel();
-    return lvl >= 100 ? null : Math.floor(levelThresholds[lvl] * prestigeScaling());
+    return lvl >= getMaxLevel() ? null : Math.floor(levelThresholds[lvl] * prestigeScaling());
 }
 
 // ── BPS / BPC helpers ──
@@ -113,7 +112,7 @@ const achievementDefs = [
     { id: 'level25',    label: '⭐ Seedling',           desc: 'Reach level 25',              check: () => getLevel() >= 25         },
     { id: 'level50',    label: '⭐ Sapling',            desc: 'Reach level 50',              check: () => getLevel() >= 50         },
     { id: 'level75',    label: '⭐ Full Grown',         desc: 'Reach level 75',              check: () => getLevel() >= 75         },
-    { id: 'level100',   label: '⭐ The Bean Master',    desc: 'Reach level 100',             check: () => getLevel() >= 100        },
+    { id: 'level100', label: '⭐ The Bean Master', desc: 'Reach level 100', check: () => getLevel() >= 100 },
     { id: 'upg5',       label: '🛒 Shopper',            desc: 'Own 5 of any upgrade',        check: () => Object.values(upgrades).some(u => u.owned >= 5)   },
     { id: 'upg25',      label: '🛒 Bulk Order',         desc: 'Own 25 of any upgrade',       check: () => Object.values(upgrades).some(u => u.owned >= 25)  },
     { id: 'upg100',     label: '🛒 Bean Hoarder',       desc: 'Own 100 of any upgrade',      check: () => Object.values(upgrades).some(u => u.owned >= 100) },
@@ -309,7 +308,7 @@ function updateLevelDisplay() {
         const pct = Math.min(100, Math.floor((totalEarned / next) * 100));
         el.innerHTML = `LVL ${level} <span class="level-bar-wrap"><span class="level-bar-fill" style="width:${pct}%"></span></span> <span class="level-next">${fmt(totalEarned)} / ${fmt(next)}</span>`;
     } else {
-        el.innerHTML = `LVL 100 <span class="level-max">✦ MAX</span>`;
+        el.innerHTML = `LVL ${getMaxLevel()} <span class="level-max">✦ MAX</span>`;
     }
 }
 
@@ -587,8 +586,8 @@ function buyUpgrade(id, upgradeSet = null) {
 
 // ── Prestige ──
 function prestige() {
-    if (getLevel() < 100) {
-        showToast('⚠️ Not Yet', 'Reach level 100 to prestige.', '#ef5350');
+    if (getLevel() < getMaxLevel()) {
+        showToast('⚠️ Not Yet', `Reach level ${getMaxLevel()} to prestige.`, '#ef5350');
         return;
     }
     const perRun = Math.round(prestigeEffects.prestigePerRun * 100);
