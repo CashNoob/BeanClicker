@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2e5e2e">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="tooltips.css">
+    <link rel="icon" href="icon.png" type="image/png">
     <title>Bean Clicker</title>
 </head>
 <body>
@@ -24,45 +28,35 @@
 
 <div class="ui">
 
-    <!-- LEFT: Shop -->
     <div class="leftbox">
         <div class="sidebar-title">🛒 Shop</div>
-        <div class="upgrade-list" id="upgradeList">
-            <div id="soilpatch"     class="upgrade-card">🌱 Soil Patch | 1 BPS | 0 Owned | Cost: 5</div>
-        </div>
+        <div class="upgrade-list" id="upgradeList"></div>
     </div>
 
-    <!-- CENTER: Main -->
     <div class="mainbox">
         <div class="top-bar">
             <div id="levelDisplay" class="level-display">LVL 1</div>
-            <div class="ticker-wrap">
-                <span id="ticker">BPS: 0</span>
-            </div>
+            <div class="ticker-wrap"><span id="ticker">BPS: 0</span></div>
         </div>
         <div class="main-inner">
             <div class="bean-count-wrap">
                 <div class="bean-count" id="beans">0</div>
                 <div class="bean-label">beans</div>
             </div>
-
             <div class="per-second" id="perSecond">0 per second</div>
-
             <div class="bean-wrapper">
                 <div class="bean-shadow"></div>
                 <img class="bean" id="beanpic" src="bean.png" alt="Bean">
             </div>
-
             <div class="click-hint">tap the bean!</div>
         </div>
     </div>
 
-    <!-- RIGHT: Tabs -->
     <div class="rightbox">
         <div class="tab-bar">
-            <button class="tab-btn active" data-tab="achievements" onclick="switchTab('achievements')">🏆 Achv</button>
-            <button class="tab-btn" data-tab="prestige" onclick="switchTab('prestige')">🔁 Prestige</button>
-            <button class="tab-btn" data-tab="leaderboard" onclick="switchTab('leaderboard')">🌍 Board</button>
+            <button class="tab-btn active" data-tab="achievements" onclick="switchTab('achievements', this)">🏆 Achv</button>
+            <button class="tab-btn" data-tab="prestige"      onclick="switchTab('prestige', this)">🔁 Prestige</button>
+            <button class="tab-btn" data-tab="leaderboard"   onclick="switchTab('leaderboard', this)">🌍 Board</button>
         </div>
 
         <div id="tab-achievements" class="tab-panel active">
@@ -73,9 +67,9 @@
         <div id="tab-prestige" class="tab-panel">
             <div class="panel-title">Prestige</div>
             <div class="prestige-body">
-                <p class="prestige-desc">Reset at <strong>level 250</strong> for a permanent <strong>+10% bean bonus</strong> that stacks every time.</p>
+                <p class="prestige-desc">Reset at <strong>level 100</strong> for a permanent <strong>+10% bean bonus</strong> that stacks. Each prestige makes leveling <strong>20% harder</strong>.</p>
                 <div id="prestigeInfo" class="prestige-info">No prestiges yet.</div>
-                <button id="prestigeBtn" class="prestige-btn">✦ PRESTIGE</button>
+                <button id="prestigeBtn" class="prestige-btn" onclick="prestige()">✦ PRESTIGE</button>
             </div>
         </div>
 

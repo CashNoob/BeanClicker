@@ -1,0 +1,128 @@
+/* tooltips.css — upgrade card tooltip styles */
+
+.upgrade-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-name {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%;
+}
+
+.card-count {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    color: var(--green-dark);
+    min-width: 20px;
+    text-align: right;
+}
+
+.card-cost {
+    font-size: 0.65rem;
+    color: var(--brown-light);
+    font-weight: 700;
+}
+
+/* ── Tooltip pops upward ── */
+.card-tooltip {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    top: auto;
+    transform: none;
+    background: #1b2a1b;
+    border: 2px solid var(--green-dark);
+    border-radius: 10px;
+    padding: 10px 12px;
+    width: 200px;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    max-height: calc(100vh - 60px); /* adjust 60px if your top bar is taller */
+    overflow-y: auto;
+}
+
+/* Downward pointing arrow */
+.card-tooltip::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 16px;
+    border: 6px solid transparent;
+    border-top-color: var(--green-dark);
+}
+
+/* Special case: if tooltip would go above viewport, push it down */
+.upgrade-card.top-tooltip .card-tooltip {
+    z-index: 9999;
+    top: unset !important;
+    bottom: auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    /* If tooltip would go off the top, push it down */
+    position: fixed;
+    left: unset;
+    right: unset;
+    /* Calculate left based on card position */
+    /* Will be set dynamically in JS for best accuracy */
+    max-height: calc(100vh - 70px); /* adjust 70px if your top bar is taller */
+    top: 60px; /* push below the top bar */
+}
+
+.upgrade-card.top-tooltip .card-tooltip::before {
+    top: auto;
+    bottom: 100%;
+    border: 6px solid transparent;
+    border-bottom-color: var(--green-dark);
+    border-top-color: transparent;
+}
+
+.upgrade-card:hover .card-tooltip {
+    opacity: 1;
+}
+
+.tooltip-stat {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.8rem;
+    color: var(--yellow);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.tooltip-desc {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+    margin-bottom: 6px;
+}
+
+.tooltip-unlock {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.3);
+    font-style: italic;
+}
+
+.upgrade-card.locked .card-tooltip { border-color: #555; }
+.upgrade-card.locked .tooltip-stat  { color: #888; }
+
+/* Ensure tooltips appear above all upgrade cards and buttons */
+.upgrade-list, .upgrade-card, .tab-bar, .tab-btn {
+    position: relative;
+    z-index: 1;
+}

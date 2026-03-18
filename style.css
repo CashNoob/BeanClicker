@@ -136,6 +136,7 @@ body {
     flex-direction: column;
     gap: 5px;
     overflow-y: auto;
+    overflow-x: visible;
     flex: 1;
     scrollbar-width: none;
 }
@@ -147,6 +148,7 @@ body {
     border: 2px solid var(--card-border);
     border-radius: var(--radius-sm);
     padding: 8px 10px;
+    overflow: visible;
     font-size: 0.68rem;
     font-weight: 700;
     color: var(--text-dark);
@@ -204,7 +206,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     position: relative;
     z-index: 1;
     padding: 20px;
@@ -212,13 +214,13 @@ body {
 }
 
 .top-bar {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    right: 12px;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 12px 16px 0;
+    position: relative;
+    z-index: 1;
 }
 
 /* ── Level display ── */
@@ -309,7 +311,6 @@ body {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     margin: 10px 0;
-    margin-top: 23px;
 }
 
 .bean-shadow {
@@ -330,7 +331,8 @@ body {
 }
 
 .bean {
-    width: clamp(100px, 18vw, 170px);
+    width: clamp(50px, 18vw, 150px);
+    margin-top: 10px;
     display: block;
     animation: bean-pulse 2s ease-in-out infinite;
     transform-origin: center bottom;
