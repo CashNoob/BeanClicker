@@ -529,7 +529,7 @@ function scheduleEvent() {
 
 // ── Click handler ──
 let lastClick = 0;
-const CLICK_COOLDOWN = 33;
+const CLICK_COOLDOWN = 50;
 const clickIntervals = [];
 let lastClickTime    = 0;
 let autoclickWarnings = 0;
@@ -540,7 +540,7 @@ function detectAutoclicker() {
     const mean     = clickIntervals.reduce((a, b) => a + b, 0) / clickIntervals.length;
     const variance = clickIntervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / clickIntervals.length;
     const stdDev   = Math.sqrt(variance);
-    if (stdDev < 10 && mean < 60) return true;
+    if (stdDev < 3 && mean < 200) return true;
 
     return false;
 }
