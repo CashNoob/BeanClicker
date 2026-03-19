@@ -9,8 +9,8 @@ export const prestigeUpgrades = {
         cost: 1,
         maxLevel: 5,
         level: 0,
-        effect: (level) => ({ startingBeans: 500 * level }),
-        effectDesc: (level) => `Start with ${500 * level} beans`,
+        effect: (level) => ({ startingBeans: 10000 * level }),
+        effectDesc: (level) => `Start with ${10000 * level} beans`,
     },
     keeperOfSeeds: {
         name: 'Keeper of Seeds',
