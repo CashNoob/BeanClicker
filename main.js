@@ -2,6 +2,7 @@
 import { upgrades } from './upgrades.js';
 import { themes, getActiveTheme, getUnlockedThemes } from './themes.js';
 import { upgradesSpace } from './upgrades-space.js';
+import { upgradesLava } from './upgrades-lava.js';
 import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from './prestigeShop.js';
 import { signUp, signIn, logOut, onAuthReady, getCurrentUser } from './auth.js';
 import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, reportCheat, saveGameState, loadGameState } from './firebase.js';
