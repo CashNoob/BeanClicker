@@ -1,28 +1,23 @@
 // firebase.js — Bean Clicker Firebase integration
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp }
-    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+    getFirestore, doc, setDoc, onSnapshot,
+    collection, query, orderBy, limit, getDocs,
+    addDoc, serverTimestamp, getDoc
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBJuBouFP_2Ek6pVpMkY8-WEruoL6BFXGU",
-  authDomain: "beanclicker-9f73e.firebaseapp.com",
-  projectId: "beanclicker-9f73e",
-  storageBucket: "beanclicker-9f73e.firebasestorage.app",
-  messagingSenderId: "277546990541",
-  appId: "1:277546990541:web:f95ab0aed6baa825fea284"
+    apiKey: "AIzaSyBJuBouFP_2Ek6pVpMkY8-WEruoL6BFXGU",
+    authDomain: "beanclicker-9f73e.firebaseapp.com",
+    projectId: "beanclicker-9f73e",
+    storageBucket: "beanclicker-9f73e.firebasestorage.app",
+    messagingSenderId: "277546990541",
+    appId: "1:277546990541:web:f95ab0aed6baa825fea284"
 };
 
-const app = initializeApp(firebaseConfig);
+// Reuse existing app if already initialized
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db  = getFirestore(app);
-
-function getPlayerId() {
-    let id = localStorage.getItem("beanPlayerId");
-    if (!id) {
-        id = crypto.randomUUID();
-        localStorage.setItem("beanPlayerId", id);
-    }
-    return id;
-}
 
 export async function reportCheat(username, reason) {
     try {
@@ -37,7 +32,29 @@ export async function reportCheat(username, reason) {
     }
 }
 
-export async function submitScore(username, level, totalBeans, prestigeCount) {
+export async function saveGameState(userId, state) {
+    try {
+        await setDoc(doc(db, "bean_saves", userId), {
+            ...state,
+            savedAt: Date.now()
+        });
+    } catch (e) {
+        console.error("Save failed:", e);
+    }
+}
+
+export async function loadGameState(userId) {
+    try {
+        const snap = await getDoc(doc(db, "bean_saves", userId));
+        return snap.exists() ? snap.data() : null;
+    } catch (e) {
+        console.error("Load failed:", e);
+        return null;
+    }
+}
+
+// userId is now the Firebase Auth UID instead of a random UUID
+export async function submitScore(userId, username, level, totalBeans, prestigeCount) {
     const data = {
         username,
         level,
@@ -45,10 +62,8 @@ export async function submitScore(username, level, totalBeans, prestigeCount) {
         prestigeCount,
         updatedAt: Date.now()
     };
-    console.log("Submitting data:", data);
     try {
-        await setDoc(doc(db, "bean_leaderboard", getPlayerId()), data);
-        console.log("Score submitted successfully");
+        await setDoc(doc(db, "bean_leaderboard", userId), data);
     } catch (e) {
         console.error("Score submit failed:", e);
     }
@@ -56,7 +71,7 @@ export async function submitScore(username, level, totalBeans, prestigeCount) {
 
 export async function fetchLeaderboard() {
     try {
-        const q = query(collection(db, "bean_leaderboard"), orderBy("level", "desc"), limit(20));
+        const q    = query(collection(db, "bean_leaderboard"), orderBy("level", "desc"), limit(20));
         const snap = await getDocs(q);
         return snap.docs.map(d => d.data());
     } catch (e) {
