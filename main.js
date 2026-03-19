@@ -3,6 +3,7 @@ import { upgrades } from './upgrades.js';
 import { themes, getActiveTheme, getUnlockedThemes } from './themes.js';
 import { upgradesSpace } from './upgrades-space.js';
 import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from './prestigeShop.js';
+import { signUp, signIn, logOut, onAuthReady, getCurrentUser } from './auth.js';
 import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, reportCheat } from './firebase.js';
 
 // Temporary reset: clear all localStorage data on load
@@ -37,6 +38,7 @@ let activeThemeId        = ls.str("beanTheme", "default");
 let prestigeEffects = getPrestigeEffects();
 
 let leaderboardInterval = null;
+let currentUser = null;
 
 function getPrestigeMulti() {
     return 1 + (prestigeCount * prestigeEffects.prestigePerRun);
@@ -543,22 +545,22 @@ function detectAutoclicker() {
 
 function punishAutoclicker() {
     autoclickWarnings++;
-    const username = localStorage.getItem('beanUsername') || 'unknown';
+    const username = currentUser ? currentUser.displayName : 'unknown';
     const oldBeans = beanAmount;
     beanAmount = 0;
     ls.set("beans", 0);
     updateBeanDisplay();
-
+ 
     reportCheat(username, `Autoclicker detected — wiped ${fmt(oldBeans)} beans (warning #${autoclickWarnings})`);
-
+ 
     showToast('🤖 Autoclicker Detected', `Lost ${fmt(oldBeans)} beans. Click yourself!`, '#ef5350');
-
+ 
     const cheatMsg = document.getElementById('cheatNotice');
     if (cheatMsg) {
         cheatMsg.textContent = `⚠️ Autoclicker detected ${autoclickWarnings} time${autoclickWarnings !== 1 ? 's' : ''}. Beans wiped.`;
         cheatMsg.style.display = 'block';
     }
-
+ 
     clickFrozen = true;
     setTimeout(() => { clickFrozen = false; }, 10000);
     clickIntervals.length = 0;
@@ -760,20 +762,15 @@ function switchTab(tabName, btn) {
 
 // ── Leaderboard ──
 function saveUsername() {
-    const input = document.getElementById('usernameInput');
-    const name  = input.value.trim();
-    if (!name) return;
-    localStorage.setItem('beanUsername', name);
-    showUsernameDisplay(name);
-    submitScore(name, getLevel(), totalEarned, prestigeCount);
-    loadLeaderboard();
+    // No-op — username is set at signup via Firebase Auth displayName
+    // Kept for compatibility with any HTML onclick references
 }
 
 function showUsernameDisplay(name) {
     document.getElementById('usernameSection').style.display = 'none';
     const el = document.getElementById('currentUser');
     el.style.display = 'block';
-    el.innerHTML = `<span class="current-user-name">✦ ${escapeHtml(name)}</span> <span class="current-user-change" onclick="changeUsername()">change</span>`;
+    el.innerHTML = `<span class="current-user-name">✦ ${escapeHtml(name)}</span>`;
 }
 
 function changeUsername() {
@@ -789,10 +786,9 @@ let lastLBSubmit = 0;
 async function loadLeaderboard() {
     const list     = document.getElementById('leaderboardList');
     list.innerHTML = '<div class="lb-loading">loading...</div>';
-    const username = localStorage.getItem('beanUsername');
-    const now      = Date.now();
-    if (username && now - lastLBSubmit > 30000) {
-        submitScore(username, getLevel(), totalEarned, prestigeCount);
+    const now = Date.now();
+    if (currentUser && now - lastLBSubmit > 30000) {
+        submitScore(currentUser.uid, currentUser.displayName, getLevel(), totalEarned, prestigeCount);
         lastLBSubmit = now;
     }
     const entries = await fetchLeaderboard();
@@ -803,25 +799,25 @@ async function loadLeaderboard() {
     list.innerHTML = '';
     entries.forEach((e, i) => {
         const div  = document.createElement('div');
-        const isMe = localStorage.getItem('beanUsername') === e.username;
+        const isMe = currentUser && currentUser.displayName === e.username;
         div.className = 'lb-entry' + (isMe ? ' lb-me' : '');
-
+ 
         const rank = document.createElement('span');
         rank.className   = 'lb-rank';
         rank.textContent = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-
+ 
         const name = document.createElement('span');
         name.className   = 'lb-name';
         name.textContent = e.username;
-
+ 
         const level = document.createElement('span');
         level.className   = 'lb-level';
         level.textContent = `LVL ${e.level}`;
-
+ 
         div.appendChild(rank);
         div.appendChild(name);
         div.appendChild(level);
-
+ 
         if (e.prestigeCount > 0) {
             const p = document.createElement('span');
             p.className   = 'lb-prestige';
@@ -837,60 +833,77 @@ function devReset() { localStorage.clear(); location.reload(); }
 
 // ── Init ──
 function Initialize() {
-    for (const id in upgrades) {
-        const saved = ls.get(`upg_${id}`);
-        if (saved > 0) upgrades[id].owned = saved;
-    }
-
-    for (const themeId in worldUpgrades) {
-        const wset = worldUpgrades[themeId];
-        for (const id in wset) {
-            const saved = ls.get(`wupg_${themeId}_${id}`);
-            if (saved > 0) wset[id].owned = saved;
+    onAuthReady(user => {
+        if (!user) {
+            // Not logged in — show auth overlay, hide game
+            document.getElementById('authOverlay').classList.remove('hidden');
+            return;
         }
-    }
-
-    for (const id in prestigeUpgrades) {
-        const saved = ls.get(`pshop_${id}`);
-        if (saved > 0) prestigeUpgrades[id].level = saved;
-    }
-    prestigeEffects = getPrestigeEffects();
-
-    buildUpgradeCards();
-    updateBeanDisplay();
-    updateBPSDisplay();
-    updateLevelDisplay();
-    updateCardVisibility();
-    updatePrestigeDisplay();
-    renderAchievements();
-    buildPrestigeShop();
-    buildThemeSelector();
-    applyTheme(activeThemeId);
-    scheduleEvent();
-    updateCardAffordability();
-
-    const savedName = localStorage.getItem('beanUsername');
-    if (savedName) showUsernameDisplay(savedName);
-
-    watchAnnouncement(msg => showBanner(msg));
-    watchGlobalEvent(eventId => {
-        const def = eventDefs.find(e => e.id === eventId);
-        if (def) triggerEvent(def);
+ 
+        // Logged in — hide auth overlay, show game
+        currentUser = user;
+        document.getElementById('authOverlay').classList.add('hidden');
+ 
+        // Show username in leaderboard panel
+        showUsernameDisplay(user.displayName || user.email);
+ 
+        // Restore upgrade state
+        for (const id in upgrades) {
+            const saved = ls.get(`upg_${id}`);
+            if (saved > 0) upgrades[id].owned = saved;
+        }
+ 
+        for (const themeId in worldUpgrades) {
+            const wset = worldUpgrades[themeId];
+            for (const id in wset) {
+                const saved = ls.get(`wupg_${themeId}_${id}`);
+                if (saved > 0) wset[id].owned = saved;
+            }
+        }
+ 
+        for (const id in prestigeUpgrades) {
+            const saved = ls.get(`pshop_${id}`);
+            if (saved > 0) prestigeUpgrades[id].level = saved;
+        }
+        prestigeEffects = getPrestigeEffects();
+ 
+        buildUpgradeCards();
+        updateBeanDisplay();
+        updateBPSDisplay();
+        updateLevelDisplay();
+        updateCardVisibility();
+        updateCardAffordability();
+        updatePrestigeDisplay();
+        renderAchievements();
+        buildPrestigeShop();
+        buildThemeSelector();
+        applyTheme(activeThemeId);
+        scheduleEvent();
+ 
+        watchAnnouncement(msg => showBanner(msg));
+        watchGlobalEvent(eventId => {
+            const def = eventDefs.find(e => e.id === eventId);
+            if (def) triggerEvent(def);
+        });
+ 
+        beanPic.addEventListener("click", beanclicker);
+        beanEl.addEventListener('animationend', () => beanEl.classList.remove('bean-clicked'));
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+        document.addEventListener('keydown', e => { if (e.ctrlKey && ['+','-','='].includes(e.key)) e.preventDefault(); });
+        document.addEventListener('touchstart', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+        document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
     });
+}
 
-    beanPic.addEventListener("click", beanclicker);
-    beanEl.addEventListener('animationend', () => beanEl.classList.remove('bean-clicked'));
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
-    document.addEventListener('keydown', e => { if (e.ctrlKey && ['+','-','='].includes(e.key)) e.preventDefault(); });
-    document.addEventListener('touchstart', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-    document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+async function handleLogout() {
+    await logOut();
+    location.reload(); // reload shows auth screen again
 }
 
 // ── Expose globals ──
+window.handleLogout = handleLogout;
 window.switchTab       = switchTab;
-window.saveUsername    = saveUsername;
-window.changeUsername  = changeUsername;
 window.loadLeaderboard = loadLeaderboard;
 window.devReset        = devReset;
 window.prestige        = prestige;

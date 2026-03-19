@@ -663,6 +663,131 @@ body {
     text-align: center;
 }
 
+.auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: #1b4332;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+ 
+.auth-overlay.hidden { display: none; }
+ 
+.auth-box {
+    background: #2e5e2e;
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+ 
+.auth-logo { font-size: 3rem; }
+ 
+.auth-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: #ffd54f;
+    letter-spacing: 2px;
+    margin: 0;
+}
+ 
+.auth-tabs {
+    display: flex;
+    gap: 8px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 4px;
+    width: 100%;
+}
+ 
+.auth-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+ 
+.auth-tab.active {
+    background: #ffd54f;
+    color: #5d4037;
+}
+ 
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+ 
+.auth-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.2);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    box-sizing: border-box;
+}
+ 
+.auth-input:focus { border-color: #ffd54f; }
+.auth-input::placeholder { color: rgba(255,255,255,0.35); }
+ 
+.auth-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #ffd54f;
+    color: #5d4037;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #c8a000;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+ 
+.auth-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #c8a000;
+}
+ 
+.auth-error {
+    width: 100%;
+    background: rgba(239,83,80,0.15);
+    border: 1px solid rgba(239,83,80,0.4);
+    color: #ef9a9a;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+}
+ 
+.auth-footer {
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    margin: 0;
+}
+
 .toast.toast-show { opacity: 1; transform: translateY(0) scale(1); }
 .toast-title { font-family: 'Fredoka One', cursive; font-size: 0.9rem; }
 .toast-desc  { font-size: 0.62rem; color: #888; }

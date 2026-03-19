@@ -334,6 +334,64 @@ function saveUsernameMobile() {
     }
 }
 
+function switchAuthTab(tab, btn) {
+    document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('authLogin').style.display  = tab === 'login'  ? 'flex' : 'none';
+    document.getElementById('authSignup').style.display = tab === 'signup' ? 'flex' : 'none';
+    document.getElementById('authError').style.display  = 'none';
+}
+ 
+function showAuthError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent    = msg;
+    el.style.display  = 'block';
+}
+ 
+async function handleLogin() {
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showAuthError('Please fill in all fields.'); return; }
+    try {
+        await signIn(email, password);
+        // onAuthReady in main.js will handle the rest
+    } catch (e) {
+        showAuthError(friendlyAuthError(e.code));
+    }
+}
+ 
+async function handleSignup() {
+    const username = document.getElementById('signupUsername').value.trim();
+    const email    = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    if (!username || !email || !password) { showAuthError('Please fill in all fields.'); return; }
+    if (username.length < 1 || username.length > 16) { showAuthError('Username must be 1-16 characters.'); return; }
+    if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+    try {
+        await signUp(email, password, username);
+        // onAuthReady in main.js will handle the rest
+    } catch (e) {
+        showAuthError(friendlyAuthError(e.code));
+    }
+}
+ 
+function friendlyAuthError(code) {
+    switch (code) {
+        case 'auth/email-already-in-use':   return 'That email is already registered.';
+        case 'auth/invalid-email':           return 'Invalid email address.';
+        case 'auth/weak-password':           return 'Password is too weak.';
+        case 'auth/user-not-found':          return 'No account found with that email.';
+        case 'auth/wrong-password':          return 'Incorrect password.';
+        case 'auth/invalid-credential':      return 'Incorrect email or password.';
+        case 'auth/too-many-requests':       return 'Too many attempts. Try again later.';
+        default:                             return 'Something went wrong. Try again.';
+    }
+}
+ 
+window.switchAuthTab = switchAuthTab;
+window.handleLogin   = handleLogin;
+window.handleSignup  = handleSignup;
+
 // Auto-sync leaderboard via MutationObserver
 const _lbObserver = new MutationObserver(() => {
     if (document.getElementById('mobileLeaderboardPanel').classList.contains('open')) {
@@ -352,6 +410,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 </script>
-<script src="main.js?v=1.2" type="module"></script>
+<script type="module">
+    import { signIn, signUp } from './auth.js';
+    window.signIn  = signIn;
+    window.signUp  = signUp;
+</script>
+<script src="main.js?v=1.2.1" type="module"></script>
 </body>
+<div id="authOverlay" class="auth-overlay">
+    <div class="auth-box">
+        <div class="auth-logo">🫘</div>
+        <h1 class="auth-title">Bean Clicker</h1>
+ 
+        <!-- Tab switcher -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login', this)">Log In</button>
+            <button class="auth-tab" onclick="switchAuthTab('signup', this)">Sign Up</button>
+        </div>
+ 
+        <!-- Error message -->
+        <div id="authError" class="auth-error" style="display:none;"></div>
+ 
+        <!-- Login form -->
+        <div id="authLogin" class="auth-form">
+            <input id="loginEmail"    class="auth-input" type="email"    placeholder="Email" autocomplete="email">
+            <input id="loginPassword" class="auth-input" type="password" placeholder="Password" autocomplete="current-password">
+            <button class="auth-btn" onclick="handleLogin()">Log In</button>
+        </div>
+ 
+        <!-- Sign up form -->
+        <div id="authSignup" class="auth-form" style="display:none;">
+            <input id="signupUsername" class="auth-input" type="text"     placeholder="Username (shown on leaderboard)" maxlength="16">
+            <input id="signupEmail"    class="auth-input" type="email"    placeholder="Email" autocomplete="email">
+            <input id="signupPassword" class="auth-input" type="password" placeholder="Password (min 6 chars)" autocomplete="new-password">
+            <button class="auth-btn" onclick="handleSignup()">Create Account</button>
+        </div>
+ 
+        <p class="auth-footer">Your progress saves to your account across devices.</p>
+    </div>
+</div>
 </html>
