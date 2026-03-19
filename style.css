@@ -794,10 +794,6 @@ body {
 .toast-title { font-family: 'Fredoka One', cursive; font-size: 0.9rem; }
 .toast-desc  { font-size: 0.62rem; color: #888; }
 
-.auth-overlay.hidden {
-    display: none !important;
-}
-
 /* ── Announcement banner ── */
 .announcement-banner {
     position: fixed;

@@ -889,14 +889,19 @@ async function loadFromCloud(userId) {
 // ── Init ──
 function Initialize() {
     onAuthReady(async (user) => {
+        console.log('onAuthReady fired', user?.uid);
         if (!user) {
-            // Not logged in — show auth overlay, hide game
-            document.getElementById('authOverlay').classList.remove('hidden');
+            const overlay = document.getElementById('authOverlay');
+            if (overlay) overlay.classList.remove('hidden');
             return;
         }
 
         if (gameInitialized) return;
         gameInitialized = true;
+
+        currentUser = user;
+        const overlay = document.getElementById('authOverlay');
+        if (overlay) overlay.classList.add('hidden');
  
         // Logged in — hide auth overlay, show game
         currentUser = user;
