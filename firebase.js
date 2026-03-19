@@ -7,12 +7,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBJuBouFP_2Ek6pVpMkY8-WEruoL6BFXGU",
-    authDomain: "beanclicker-9f73e.firebaseapp.com",
-    projectId: "beanclicker-9f73e",
-    storageBucket: "beanclicker-9f73e.firebasestorage.app",
-    messagingSenderId: "277546990541",
-    appId: "1:277546990541:web:f95ab0aed6baa825fea284"
+  apiKey: "AIzaSyBJuBouFP_2Ek6pVpMkY8-WEruoL6BFXGU",
+  authDomain: "beanclicker-9f73e.firebaseapp.com",
+  projectId: "beanclicker-9f73e",
+  storageBucket: "beanclicker-9f73e.firebasestorage.app",
+  messagingSenderId: "277546990541",
+  appId: "1:277546990541:web:f95ab0aed6baa825fea284"
 };
 
 // Reuse existing app if already initialized

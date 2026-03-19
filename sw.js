@@ -39,10 +39,12 @@ self.addEventListener('activate', e => {
 
 // Fetch — serve from cache, fall back to network
 self.addEventListener('fetch', e => {
-    // Skip firebase/firestore requests — those need network
+    // Skip ALL firebase/google requests — they need network
     if (e.request.url.includes('firestore') ||
         e.request.url.includes('firebase') ||
-        e.request.url.includes('googleapis.com/firestore')) {
+        e.request.url.includes('googleapis.com') ||
+        e.request.url.includes('identitytoolkit') ||
+        e.request.url.includes('securetoken')) {
         return;
     }
 
