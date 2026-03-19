@@ -4,7 +4,7 @@ import { themes, getActiveTheme, getUnlockedThemes } from './themes.js';
 import { upgradesSpace } from './upgrades-space.js';
 import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from './prestigeShop.js';
 import { signUp, signIn, logOut, onAuthReady, getCurrentUser } from './auth.js';
-import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, reportCheat } from './firebase.js';
+import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, reportCheat, saveGameState, loadGameState } from './firebase.js';
 
 // Temporary reset: clear all localStorage data on load
 
@@ -34,6 +34,7 @@ let activeEvent          = null;
 let eventMultiplier      = 1;
 let unlockedAchievements = ls.getJSON("beanAchievements", []);
 let activeThemeId        = ls.str("beanTheme", "default");
+let gameInitialized = false;
 
 let prestigeEffects = getPrestigeEffects();
 
@@ -292,6 +293,7 @@ function buyPrestigeUpgrade(id) {
     buildThemeSelector();
     updatePrestigeDisplay();
     checkAchievements();
+    saveToCloud();
 }
 
 // ── Display updates ──
@@ -736,6 +738,7 @@ function prestige() {
     buildThemeSelector();
     buildUpgradeCards();
     for (const id in upgrades) updateCardText(id);
+    saveToCloud();
     checkAchievements();
     updateCardAffordability();
 }
@@ -788,7 +791,7 @@ async function loadLeaderboard() {
     list.innerHTML = '<div class="lb-loading">loading...</div>';
     const now = Date.now();
     if (currentUser && now - lastLBSubmit > 30000) {
-        submitScore(currentUser.uid, currentUser.displayName, getLevel(), totalEarned, prestigeCount);
+        await submitScore(currentUser.uid, currentUser.displayName, getLevel(), totalEarned, prestigeCount);
         lastLBSubmit = now;
     }
     const entries = await fetchLeaderboard();
@@ -831,14 +834,69 @@ async function loadLeaderboard() {
 // ── Dev reset ──
 function devReset() { localStorage.clear(); location.reload(); }
 
+async function saveToCloud() {
+    if (!currentUser) return;
+    const state = {
+        beans:          beanAmount,
+        totalEarned:    totalEarned,
+        totalClicks:    totalClicks,
+        prestigeCount:  prestigeCount,
+        beanTheme:      activeThemeId,
+        achievements:   unlockedAchievements,
+    };
+    // Save upgrade counts
+    for (const id in upgrades) state[`upg_${id}`] = upgrades[id].owned;
+    for (const themeId in worldUpgrades) {
+        for (const id in worldUpgrades[themeId]) {
+            state[`wupg_${themeId}_${id}`] = worldUpgrades[themeId][id].owned;
+        }
+    }
+    for (const id in prestigeUpgrades) state[`pshop_${id}`] = prestigeUpgrades[id].level;
+    await saveGameState(currentUser.uid, state);
+}
+
+async function loadFromCloud(userId) {
+    const state = await loadGameState(userId);
+    if (!state) return; // no cloud save, use localStorage as fallback
+
+    // Restore everything from cloud
+    beanAmount    = state.beans        ?? ls.get("beans");
+    totalEarned   = state.totalEarned  ?? ls.get("totalEarned");
+    totalClicks   = state.totalClicks  ?? ls.get("totalClicks");
+    prestigeCount = state.prestigeCount ?? ls.get("prestigeCount");
+    activeThemeId = state.beanTheme    ?? ls.str("beanTheme", "default");
+    unlockedAchievements = state.achievements ?? ls.getJSON("beanAchievements", []);
+
+    for (const id in upgrades) {
+        upgrades[id].owned = state[`upg_${id}`] ?? 0;
+    }
+    for (const themeId in worldUpgrades) {
+        for (const id in worldUpgrades[themeId]) {
+            worldUpgrades[themeId][id].owned = state[`wupg_${themeId}_${id}`] ?? 0;
+        }
+    }
+    for (const id in prestigeUpgrades) {
+        prestigeUpgrades[id].level = state[`pshop_${id}`] ?? 0;
+    }
+
+    // Sync to localStorage too
+    ls.set("beans", beanAmount);
+    ls.set("totalEarned", totalEarned);
+    ls.set("totalClicks", totalClicks);
+    ls.set("prestigeCount", prestigeCount);
+}
+
 // ── Init ──
 function Initialize() {
-    onAuthReady(user => {
+    onAuthReady(async (user) => {
         if (!user) {
             // Not logged in — show auth overlay, hide game
             document.getElementById('authOverlay').classList.remove('hidden');
             return;
         }
+
+        if (gameInitialized) return;
+        gameInitialized = true;
  
         // Logged in — hide auth overlay, show game
         currentUser = user;
@@ -846,25 +904,8 @@ function Initialize() {
  
         // Show username in leaderboard panel
         showUsernameDisplay(user.displayName || user.email);
- 
-        // Restore upgrade state
-        for (const id in upgrades) {
-            const saved = ls.get(`upg_${id}`);
-            if (saved > 0) upgrades[id].owned = saved;
-        }
- 
-        for (const themeId in worldUpgrades) {
-            const wset = worldUpgrades[themeId];
-            for (const id in wset) {
-                const saved = ls.get(`wupg_${themeId}_${id}`);
-                if (saved > 0) wset[id].owned = saved;
-            }
-        }
- 
-        for (const id in prestigeUpgrades) {
-            const saved = ls.get(`pshop_${id}`);
-            if (saved > 0) prestigeUpgrades[id].level = saved;
-        }
+
+        await loadFromCloud(user.uid);
         prestigeEffects = getPrestigeEffects();
  
         buildUpgradeCards();
@@ -879,6 +920,7 @@ function Initialize() {
         buildThemeSelector();
         applyTheme(activeThemeId);
         scheduleEvent();
+        setInterval(saveToCloud, 30000);
  
         watchAnnouncement(msg => showBanner(msg));
         watchGlobalEvent(eventId => {

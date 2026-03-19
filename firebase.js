@@ -1,5 +1,5 @@
 // firebase.js — Bean Clicker Firebase integration
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeApp, getApps, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
     getFirestore, doc, setDoc, onSnapshot,
     collection, query, orderBy, limit, getDocs,
@@ -29,6 +29,27 @@ export async function reportCheat(username, reason) {
         });
     } catch (e) {
         console.error("Cheat log failed:", e);
+    }
+}
+
+export async function saveGameState(userId, state) {
+    try {
+        await setDoc(doc(db, "bean_saves", userId), {
+            ...state,
+            savedAt: Date.now()
+        });
+    } catch (e) {
+        console.error("Save failed:", e);
+    }
+}
+
+export async function loadGameState(userId) {
+    try {
+        const snap = await getDoc(doc(db, "bean_saves", userId));
+        return snap.exists() ? snap.data() : null;
+    } catch (e) {
+        console.error("Load failed:", e);
+        return null;
     }
 }
 
