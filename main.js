@@ -928,7 +928,11 @@ function Initialize() {
             if (def) triggerEvent(def);
         });
  
-        beanPic.addEventListener("click", beanclicker);
+        if ('ontouchstart' in window) {
+            beanPic.addEventListener("touchstart", (e) => { e.preventDefault(); beanclicker(); }, { passive: false });
+        } else {
+            beanPic.addEventListener("click", beanclicker);
+        }
         beanEl.addEventListener('animationend', () => beanEl.classList.remove('bean-clicked'));
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
