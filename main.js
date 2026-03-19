@@ -3,7 +3,7 @@ import { upgrades } from './upgrades.js';
 import { themes, getActiveTheme, getUnlockedThemes } from './themes.js';
 import { upgradesSpace } from './upgrades-space.js';
 import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from './prestigeShop.js';
-import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent } from './firebase.js';
+import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, reportCheat } from './firebase.js';
 
 // Temporary reset: clear all localStorage data on load
 
@@ -383,6 +383,24 @@ function buildUpgradeCards() {
     if (worldList && world) buildUpgradeList('worldUpgradeList', world, true);
 }
 
+function updateCardAffordability() {
+    for (const id in upgrades) {
+        const card = document.getElementById(id);
+        if (!card) continue;
+        const cost = getUpgradeCost(upgrades[id]);
+        card.classList.toggle('insufficient-funds', beanAmount < cost);
+    }
+    const world = getWorldUpgrades();
+    if (world) {
+        for (const id in world) {
+            const card = document.getElementById(`world_${id}`);
+            if (!card) continue;
+            const cost = getUpgradeCost(world[id]);
+            card.classList.toggle('insufficient-funds', beanAmount < cost);
+        }
+    }
+}
+
 function buildUpgradeList(containerId, upgradeSet, isWorld) {
     const list = document.getElementById(containerId);
     if (!list) return;
@@ -411,9 +429,6 @@ function buildUpgradeList(containerId, upgradeSet, isWorld) {
                 <div class="tooltip-unlock">Unlocks at level ${u.unlockLevel}</div>
             </div>
         `;
-        if (beanAmount < u.cost) {
-            card.classList.add('insufficient-funds');
-        }
         card.addEventListener('click', () => buyUpgrade(id, isWorld ? upgradeSet : null));
         list.appendChild(card);
     }
@@ -511,11 +526,62 @@ function scheduleEvent() {
 // ── Click handler ──
 let lastClick = 0;
 const CLICK_COOLDOWN = 33;
+const clickIntervals = [];
+let lastClickTime    = 0;
+let autoclickWarnings = 0;
+let clickFrozen      = false;
+
+function detectAutoclicker() {
+    if (clickIntervals.length < 10) return false;
+    const mean     = clickIntervals.reduce((a, b) => a + b, 0) / clickIntervals.length;
+    const variance = clickIntervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / clickIntervals.length;
+    const stdDev   = Math.sqrt(variance);
+    return stdDev < 10 && mean < 60;
+}
+
+function punishAutoclicker() {
+    autoclickWarnings++;
+    const username = localStorage.getItem('beanUsername') || 'unknown';
+    const oldBeans = beanAmount;
+    beanAmount = 0;
+    ls.set("beans", 0);
+    updateBeanDisplay();
+
+    reportCheat(username, `Autoclicker detected — wiped ${fmt(oldBeans)} beans (warning #${autoclickWarnings})`);
+
+    showToast('🤖 Autoclicker Detected', `Lost ${fmt(oldBeans)} beans. Click yourself!`, '#ef5350');
+
+    const cheatMsg = document.getElementById('cheatNotice');
+    if (cheatMsg) {
+        cheatMsg.textContent = `⚠️ Autoclicker detected ${autoclickWarnings} time${autoclickWarnings !== 1 ? 's' : ''}. Beans wiped.`;
+        cheatMsg.style.display = 'block';
+    }
+
+    clickFrozen = true;
+    setTimeout(() => { clickFrozen = false; }, 10000);
+    clickIntervals.length = 0;
+}
 
 function beanclicker() {
+    if (clickFrozen) return;
+
     const now = Date.now();
     if (now - lastClick < CLICK_COOLDOWN) return;
-    lastClick = now;
+
+    if (lastClickTime > 0) {
+        const interval = now - lastClickTime;
+        if (interval < 500) {
+            clickIntervals.push(interval);
+            if (clickIntervals.length > 10) clickIntervals.shift();
+        }
+    }
+    lastClickTime = now;
+    lastClick     = now;
+
+    if (detectAutoclicker()) {
+        punishAutoclicker();
+        return;
+    }
 
     const frenzy     = activeEvent && activeEvent.id === 'frenzy' ? eventMultiplier : 1;
     const clicktotal = Math.floor(calcBPC() * getPrestigeMulti() * frenzy);
@@ -541,6 +607,7 @@ function beanclicker() {
 
     updateLevelDisplay();
     updateCardVisibility();
+    updateCardAffordability();
     checkAchievements();
 }
 
@@ -558,6 +625,7 @@ function bpsTick() {
     updateBPSDisplay();
     updateLevelDisplay();
     updateCardVisibility();
+    updateCardAffordability();
     checkAchievements();
 }
 setInterval(bpsTick, 1000);
@@ -603,6 +671,7 @@ function buyUpgrade(id, upgradeSet = null) {
     updateLevelDisplay();
     updateCardVisibility();
     checkAchievements();
+    updateCardAffordability();
 }
 
 // ── Prestige ──
@@ -664,6 +733,7 @@ function prestige() {
     buildUpgradeCards();
     for (const id in upgrades) updateCardText(id);
     checkAchievements();
+    updateCardAffordability();
 }
 
 // ── Tabs ──
@@ -795,6 +865,7 @@ function Initialize() {
     buildThemeSelector();
     applyTheme(activeThemeId);
     scheduleEvent();
+    updateCardAffordability();
 
     const savedName = localStorage.getItem('beanUsername');
     if (savedName) showUsernameDisplay(savedName);

@@ -1,6 +1,6 @@
 // firebase.js — Bean Clicker Firebase integration
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, getDocs }
+import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -22,6 +22,19 @@ function getPlayerId() {
         localStorage.setItem("beanPlayerId", id);
     }
     return id;
+}
+
+export async function reportCheat(username, reason) {
+    try {
+        await addDoc(collection(db, "bean_cheat_log"), {
+            username:  username,
+            reason:    reason,
+            timestamp: serverTimestamp(),
+            userAgent: navigator.userAgent,
+        });
+    } catch (e) {
+        console.error("Cheat log failed:", e);
+    }
 }
 
 export async function submitScore(username, level, totalBeans, prestigeCount) {
