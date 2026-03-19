@@ -19,7 +19,7 @@ const ls = {
 
 const worldUpgrades = {
     space: upgradesSpace,
-    // lava:   upgradesLava,
+    lava:   upgradesLava,
     // ice:    upgradesIce,
     // golden: upgradesGolden,
     // void:   upgradesVoid,
@@ -425,7 +425,7 @@ function buildUpgradeList(containerId, upgradeSet, isWorld) {
                 <span class="card-name">${u.emoji} ${u.name}</span>
                 <span class="card-count">${u.owned}</span>
             </div>
-            <div class="card-cost">🫘 ${fmt(u.cost)}</div>
+            <div class="card-cost">🫘 ${fmt(getUpgradeCost(u))}</div>
             <div class="card-stat">${statType}</div>
             <div class="card-tooltip">
                 <div class="tooltip-stat">${statType}</div>

@@ -791,10 +791,12 @@ body {
 }
 
 .toast.toast-show { opacity: 1; transform: translateY(0) scale(1); }
-.toast-title { font-family: '.auth-overlay.hidden {
-    display: none !important;
-}Fredoka One', cursive; font-size: 0.9rem; }
+.toast-title { font-family: 'Fredoka One', cursive; font-size: 0.9rem; }
 .toast-desc  { font-size: 0.62rem; color: #888; }
+
+.auth-overlay.hidden {
+    display: none !important;
+}
 
 /* ── Announcement banner ── */
 .announcement-banner {
@@ -835,6 +837,100 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+body.theme-lava {
+    --sidebar-bg:  #4a0e00;
+    --sidebar2-bg: #2d0800;
+    --card-bg:     #5a1500;
+    --card-border: rgba(255, 87, 34, 0.45);
+    --text-dark:   #fbe9e7;
+    --text-mid:    #ffccbc;
+    --green:       #ff5722;
+    --green-light: #ffab91;
+    --green-dark:  #bf360c;
+    --yellow:      #ffab91;
+    --orange:      #ff3d00;
+    --brown:       #bf360c;
+    --cream:       #fbe9e7;
+}
+ 
+/* Lava background pulse already in themes.css,
+   but also recolor the floating bg beans */
+body.theme-lava .bg-beans span {
+    filter: hue-rotate(120deg) saturate(2);
+}
+ 
+/* Recolor the level bar fill */
+body.theme-lava .level-bar-fill {
+    background: #ff5722;
+}
+ 
+/* Recolor the prestige button */
+body.theme-lava .prestige-btn {
+    background: #ff5722;
+    box-shadow: 0 4px 0 #bf360c;
+    color: #fff;
+}
+ 
+body.theme-lava .prestige-btn:hover {
+    background: #ff7043;
+}
+ 
+/* Recolor upgrade card hover */
+body.theme-lava .upgrade-card:hover:not(.locked) {
+    background: #6a1f00;
+    border-color: #ff5722;
+}
+ 
+/* Recolor tab active state */
+body.theme-lava .tab-btn.active {
+    color: #ffab91;
+    border-bottom-color: #ffab91;
+}
+ 
+body.theme-lava .sidebar-tab-btn.active {
+    color: #ffab91;
+    border-bottom-color: #ffab91;
+}
+ 
+/* Recolor mainbox gradient */
+body.theme-lava .mainbox {
+    background: linear-gradient(160deg, #3e0a00 0%, #6a1200 40%, #8b1a00 100%);
+}
+ 
+body.theme-lava .mainbox::before {
+    background-image: radial-gradient(circle, rgba(255,87,34,0.1) 1px, transparent 1px);
+}
+ 
+/* Bean count color */
+body.theme-lava .bean-count {
+    color: #ffab91;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+}
+ 
+body.theme-lava .bean-label {
+    color: #ff8a65;
+}
+ 
+body.theme-lava .per-second {
+    color: #ff8a65;
+}
+ 
+/* Level display */
+body.theme-lava .level-display {
+    color: #bf360c;
+    background: rgba(255, 235, 230, 0.7);
+}
+ 
+body.theme-lava .ticker-wrap {
+    color: #bf360c;
+    background: rgba(255, 235, 230, 0.7);
+}
+ 
+/* Float text */
+body.theme-lava .float-text {
+    color: #ff5722;
 }
 
 /* ── MOBILE OVERHAUL ── */
