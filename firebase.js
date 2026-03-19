@@ -1,9 +1,9 @@
 // firebase.js — Bean Clicker Firebase integration
-import { initializeApp, getApps, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
     getFirestore, doc, setDoc, onSnapshot,
     collection, query, orderBy, limit, getDocs,
-    addDoc, serverTimestamp
+    addDoc, serverTimestamp, getDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
