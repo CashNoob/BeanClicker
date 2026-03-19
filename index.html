@@ -15,6 +15,38 @@
     <title>Bean Clicker</title>
 </head>
 <body>
+<div id="authOverlay" class="auth-overlay">
+    <div class="auth-box">
+        <div class="auth-logo">🫘</div>
+        <h1 class="auth-title">Bean Clicker</h1>
+ 
+        <!-- Tab switcher -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login', this)">Log In</button>
+            <button class="auth-tab" onclick="switchAuthTab('signup', this)">Sign Up</button>
+        </div>
+ 
+        <!-- Error message -->
+        <div id="authError" class="auth-error" style="display:none;"></div>
+ 
+        <!-- Login form -->
+        <div id="authLogin" class="auth-form">
+            <input id="loginEmail"    class="auth-input" type="email"    placeholder="Email" autocomplete="email">
+            <input id="loginPassword" class="auth-input" type="password" placeholder="Password" autocomplete="current-password">
+            <button class="auth-btn" onclick="handleLogin()">Log In</button>
+        </div>
+ 
+        <!-- Sign up form -->
+        <div id="authSignup" class="auth-form" style="display:none;">
+            <input id="signupUsername" class="auth-input" type="text"     placeholder="Username (shown on leaderboard)" maxlength="16">
+            <input id="signupEmail"    class="auth-input" type="email"    placeholder="Email" autocomplete="email">
+            <input id="signupPassword" class="auth-input" type="password" placeholder="Password (min 6 chars)" autocomplete="new-password">
+            <button class="auth-btn" onclick="handleSignup()">Create Account</button>
+        </div>
+ 
+        <p class="auth-footer">Your progress saves to your account across devices.</p>
+    </div>
+</div>
 
 <div class="bg-beans" aria-hidden="true">
     <span>🫘</span><span>🫘</span><span>🫘</span>
@@ -415,38 +447,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.signIn  = signIn;
     window.signUp  = signUp;
 </script>
-<script src="main.js?v=1.2.3" type="module"></script>
+<script src="main.js?v=1.2.4" type="module"></script>
 </body>
-<div id="authOverlay" class="auth-overlay">
-    <div class="auth-box">
-        <div class="auth-logo">🫘</div>
-        <h1 class="auth-title">Bean Clicker</h1>
- 
-        <!-- Tab switcher -->
-        <div class="auth-tabs">
-            <button class="auth-tab active" onclick="switchAuthTab('login', this)">Log In</button>
-            <button class="auth-tab" onclick="switchAuthTab('signup', this)">Sign Up</button>
-        </div>
- 
-        <!-- Error message -->
-        <div id="authError" class="auth-error" style="display:none;"></div>
- 
-        <!-- Login form -->
-        <div id="authLogin" class="auth-form">
-            <input id="loginEmail"    class="auth-input" type="email"    placeholder="Email" autocomplete="email">
-            <input id="loginPassword" class="auth-input" type="password" placeholder="Password" autocomplete="current-password">
-            <button class="auth-btn" onclick="handleLogin()">Log In</button>
-        </div>
- 
-        <!-- Sign up form -->
-        <div id="authSignup" class="auth-form" style="display:none;">
-            <input id="signupUsername" class="auth-input" type="text"     placeholder="Username (shown on leaderboard)" maxlength="16">
-            <input id="signupEmail"    class="auth-input" type="email"    placeholder="Email" autocomplete="email">
-            <input id="signupPassword" class="auth-input" type="password" placeholder="Password (min 6 chars)" autocomplete="new-password">
-            <button class="auth-btn" onclick="handleSignup()">Create Account</button>
-        </div>
- 
-        <p class="auth-footer">Your progress saves to your account across devices.</p>
-    </div>
-</div>
 </html>
