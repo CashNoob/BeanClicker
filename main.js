@@ -536,7 +536,10 @@ function detectAutoclicker() {
     const mean     = clickIntervals.reduce((a, b) => a + b, 0) / clickIntervals.length;
     const variance = clickIntervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / clickIntervals.length;
     const stdDev   = Math.sqrt(variance);
-    return stdDev < 10 && mean < 60;
+    if (stdDev < 10 && mean < 60) return true;
+    if (stdDev < 8 && mean < 150) return true;
+
+    return false;
 }
 
 function punishAutoclicker() {
