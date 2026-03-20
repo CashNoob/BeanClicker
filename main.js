@@ -1132,6 +1132,7 @@ function Initialize() {
         } else {
             dom.beanPic.addEventListener("click", beanclicker);
         }
+        document.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); beanclicker(); } });
         dom.beanEl.addEventListener('animationend', () => dom.beanEl.classList.remove('bean-clicked'));
 
         // Prevent zoom/context menu
