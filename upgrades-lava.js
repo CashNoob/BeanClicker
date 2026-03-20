@@ -1,12 +1,12 @@
 // upgrades-lava.js — Lava Bean world upgrades (prestige 2+)
-// Harder to afford than Space but significantly more powerful
+// Significantly stronger than Space — the endgame world upgrade set
 
 export const upgradesLava = {
     magmapool: {
         name: "Magma Pool",
         emoji: "🌋",
-        cost: 8000,
-        bps: 50,
+        cost: 5000,
+        bps: 40,
         bpc: 0,
         owned: 0,
         unlockLevel: 1,
@@ -15,9 +15,9 @@ export const upgradesLava = {
     ashsifter: {
         name: "Ash Sifter",
         emoji: "🌫️",
-        cost: 18000,
+        cost: 12000,
         bps: 0,
-        bpc: 75,
+        bpc: 70,
         owned: 0,
         unlockLevel: 1,
         desc: "Sift through volcanic ash after each eruption. Rich in beans.",
@@ -25,8 +25,8 @@ export const upgradesLava = {
     lavaforge: {
         name: "Lava Forge",
         emoji: "⚒️",
-        cost: 55000,
-        bps: 280,
+        cost: 50000,
+        bps: 300,
         bpc: 0,
         owned: 0,
         unlockLevel: 3,
@@ -35,9 +35,9 @@ export const upgradesLava = {
     demonpact: {
         name: "Demon Pact",
         emoji: "😈",
-        cost: 130000,
+        cost: 120000,
         bps: 0,
-        bpc: 450,
+        bpc: 500,
         owned: 0,
         unlockLevel: 5,
         desc: "You sold your soul. In return, demons deliver beans on every click.",
@@ -45,8 +45,8 @@ export const upgradesLava = {
     obsidianmine: {
         name: "Obsidian Mine",
         emoji: "⛏️",
-        cost: 360000,
-        bps: 1100,
+        cost: 400000,
+        bps: 1500,
         bpc: 0,
         owned: 0,
         unlockLevel: 8,
@@ -55,9 +55,9 @@ export const upgradesLava = {
     hellgate: {
         name: "Hell Gate",
         emoji: "🔥",
-        cost: 900000,
+        cost: 1200000,
         bps: 0,
-        bpc: 2100,
+        bpc: 3000,
         owned: 0,
         unlockLevel: 10,
         desc: "A direct portal to the underworld. Beans pour through constantly.",
@@ -65,8 +65,8 @@ export const upgradesLava = {
     volcanicvent: {
         name: "Volcanic Vent",
         emoji: "💨",
-        cost: 2600000,
-        bps: 5500,
+        cost: 4000000,
+        bps: 8000,
         bpc: 0,
         owned: 0,
         unlockLevel: 13,
@@ -75,9 +75,9 @@ export const upgradesLava = {
     cursedcauldron: {
         name: "Cursed Cauldron",
         emoji: "🫕",
-        cost: 6500000,
+        cost: 15000000,
         bps: 0,
-        bpc: 12000,
+        bpc: 20000,
         owned: 0,
         unlockLevel: 16,
         desc: "Stir the cauldron. Each click multiplies the beans within. Cursed? Maybe.",
@@ -85,8 +85,8 @@ export const upgradesLava = {
     moltensmelter: {
         name: "Molten Smelter",
         emoji: "🏭",
-        cost: 20000000,
-        bps: 24000,
+        cost: 50000000,
+        bps: 80000,
         bpc: 0,
         owned: 0,
         unlockLevel: 20,
@@ -95,9 +95,9 @@ export const upgradesLava = {
     infernalpress: {
         name: "Infernal Press",
         emoji: "🗜️",
-        cost: 50000000,
+        cost: 200000000,
         bps: 0,
-        bpc: 50000,
+        bpc: 500000,
         owned: 0,
         unlockLevel: 24,
         desc: "Demonic hydraulic press. Compresses raw hellstone into pure bean ingots.",
@@ -105,8 +105,8 @@ export const upgradesLava = {
     eruption: {
         name: "Mass Eruption",
         emoji: "🌋",
-        cost: 150000000,
-        bps: 110000,
+        cost: 800000000,
+        bps: 5000000,
         bpc: 0,
         owned: 0,
         unlockLevel: 29,
@@ -115,9 +115,9 @@ export const upgradesLava = {
     soulharvester: {
         name: "Soul Harvester",
         emoji: "💀",
-        cost: 400000000,
+        cost: 5000000000,
         bps: 0,
-        bpc: 240000,
+        bpc: 30000000,
         owned: 0,
         unlockLevel: 34,
         desc: "Every soul that enters the underworld carries a bean tithe. Collect them all.",
@@ -125,8 +125,8 @@ export const upgradesLava = {
     tectonicshift: {
         name: "Tectonic Shift",
         emoji: "🌍",
-        cost: 1200000000,
-        bps: 550000,
+        cost: 30000000000,
+        bps: 200000000,
         bpc: 0,
         owned: 0,
         unlockLevel: 40,
@@ -135,9 +135,9 @@ export const upgradesLava = {
     demonlord: {
         name: "Demon Lord",
         emoji: "👹",
-        cost: 3500000000,
+        cost: 200000000000,
         bps: 0,
-        bpc: 1300000,
+        bpc: 1500000000,
         owned: 0,
         unlockLevel: 47,
         desc: "You command a demon lord. His armies farm beans across seventeen dimensions of hell.",
@@ -145,9 +145,9 @@ export const upgradesLava = {
     coreoftheearth: {
         name: "Core of the Earth",
         emoji: "🔴",
-        cost: 10000000000,
-        bps: 3600000,
-        bpc: 3600000,
+        cost: 1500000000000,
+        bps: 8000000000,
+        bpc: 8000000000,
         owned: 0,
         unlockLevel: 55,
         desc: "You've drilled to the earth's core. It's beans all the way down.",
