@@ -71,9 +71,12 @@ export async function submitScore(userId, username, level, totalBeans, prestigeC
 
 export async function fetchLeaderboard() {
     try {
-        const q    = query(collection(db, "bean_leaderboard"), orderBy("level", "desc"), limit(20));
+        const q    = query(collection(db, "bean_leaderboard"), orderBy("prestigeCount", "desc"), limit(20));
         const snap = await getDocs(q);
-        return snap.docs.map(d => d.data());
+        const entries = snap.docs.map(d => d.data());
+        // Sort: prestige desc, then level desc as tiebreaker
+        entries.sort((a, b) => (b.prestigeCount || 0) - (a.prestigeCount || 0) || (b.level || 0) - (a.level || 0));
+        return entries;
     } catch (e) {
         console.error("Leaderboard fetch failed:", e);
         return [];
