@@ -62,7 +62,7 @@ function buildThresholds() {
     let val = 30;
     for (let i = 1; i < 600; i++) {
         t.push(Math.floor(val));
-        val *= 1.3;
+        val *= 1.4;
     }
     return t;
 }
