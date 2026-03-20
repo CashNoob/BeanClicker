@@ -5,7 +5,7 @@ export const prestigeUpgrades = {
     headstart: {
         name: 'Head Start',
         emoji: '🚀',
-        desc: 'Begin each prestige with 500 free beans.',
+        desc: 'Begin each prestige with 10000 free beans.',
         cost: 1,
         maxLevel: 5,
         level: 0,

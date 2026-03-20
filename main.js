@@ -2,7 +2,7 @@
 import { upgrades } from './upgrades.js';
 import { themes, getActiveTheme, getUnlockedThemes } from './themes.js';
 import { upgradesSpace } from './upgrades-space.js';
-import { upgradesLava } from './upgrades-lava.js';
+import { upgradesLava } from './upgrades-lava.js';a
 import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from './prestigeShop.js';
 import { signUp, signIn, logOut, onAuthReady, getCurrentUser } from './auth.js';
 import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, reportCheat, saveGameState, loadGameState } from './firebase.js';
@@ -62,7 +62,7 @@ function buildThresholds() {
     let val = 30;
     for (let i = 1; i < 600; i++) {
         t.push(Math.floor(val));
-        val *= 1.5;
+        val *= 1.3;
     }
     return t;
 }
