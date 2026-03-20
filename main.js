@@ -1,4 +1,4 @@
-// main.js — Bean Clicker
+// main.js — Bean Clicker (Refactored)
 import { upgrades } from './upgrades.js';
 import { themes, getActiveTheme, getUnlockedThemes } from './themes.js';
 import { upgradesSpace } from './upgrades-space.js';
@@ -6,8 +6,6 @@ import { upgradesLava } from './upgrades-lava.js';
 import { prestigeUpgrades, getAvailablePP, computePP, getPrestigeEffects } from './prestigeShop.js';
 import { signUp, signIn, logOut, onAuthReady, getCurrentUser } from './auth.js';
 import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, reportCheat, saveGameState, loadGameState } from './firebase.js';
-
-// Temporary reset: clear all localStorage data on load
 
 // ── Storage helpers ──
 const ls = {
@@ -20,44 +18,96 @@ const ls = {
 
 const worldUpgrades = {
     space: upgradesSpace,
-    lava:   upgradesLava,
-    // ice:    upgradesIce,
-    // golden: upgradesGolden,
-    // void:   upgradesVoid,
+    lava:  upgradesLava,
 };
 
-// ── State ──
-let beanAmount           = ls.get("beans");
-let totalEarned          = ls.get("totalEarned");
-let totalClicks          = ls.get("totalClicks");
-let prestigeCount        = ls.get("prestigeCount");
-let activeEvent          = null;
-let eventMultiplier      = 1;
-let unlockedAchievements = ls.getJSON("beanAchievements", []);
-let activeThemeId        = ls.str("beanTheme", "default");
-let gameInitialized = false;
+// ══════════════════════════════════════════════
+//  CENTRALIZED GAME STATE
+// ══════════════════════════════════════════════
+const state = {
+    beans:          ls.get("beans"),
+    totalEarned:    ls.get("totalEarned"),
+    totalClicks:    ls.get("totalClicks"),
+    prestigeCount:  ls.get("prestigeCount"),
+    activeThemeId:  ls.str("beanTheme", "default"),
+    achievements:   ls.getJSON("beanAchievements", []),
+    activeEvent:    null,
+    eventMultiplier: 1,
+    prestigeEffects: getPrestigeEffects(),
+    currentUser:    null,
+    gameInitialized: false,
+};
 
-let prestigeEffects = getPrestigeEffects();
-
-let leaderboardInterval = null;
-let currentUser = null;
-
+// ── Convenience accessors ──
 function getPrestigeMulti() {
-    return 1 + (prestigeCount * prestigeEffects.prestigePerRun);
+    return 1 + (state.prestigeCount * state.prestigeEffects.prestigePerRun);
 }
 
 function getWorldUpgrades() {
-    return worldUpgrades[activeThemeId] || null;
+    return worldUpgrades[state.activeThemeId] || null;
 }
 
-// ── DOM ──
-const beanDisplay = document.getElementById("beans");
-const beanPic     = document.getElementById("beanpic");
-const beanEl      = document.querySelector(".bean");
-const beanSound   = new Audio('bean.m4a');
+// ── Persist core state to localStorage ──
+function persistCore() {
+    ls.set("beans",         state.beans);
+    ls.set("totalEarned",   state.totalEarned);
+    ls.set("totalClicks",   state.totalClicks);
+    ls.set("prestigeCount", state.prestigeCount);
+}
 
-// ── Level thresholds ──
-function buildThresholds() {
+// ── DOM refs (cached once) ──
+const dom = {
+    beanDisplay:   document.getElementById("beans"),
+    beanPic:       document.getElementById("beanpic"),
+    beanEl:        document.querySelector(".bean"),
+    ticker:        document.getElementById("ticker"),
+    perSecond:     document.getElementById("perSecond"),
+    levelDisplay:  document.getElementById("levelDisplay"),
+    eventBar:      document.getElementById("eventBar"),
+    toastContainer:document.getElementById("toastContainer"),
+    upgradeList:   document.getElementById("upgradeList"),
+    worldUpgradeList: document.getElementById("worldUpgradeList"),
+    worldUpgradeTab:  document.getElementById("worldUpgradeTab"),
+    achievementList:  document.getElementById("achievementList"),
+    achCount:         document.getElementById("achCount"),
+    prestigeInfo:     document.getElementById("prestigeInfo"),
+    prestigeDesc:     document.getElementById("prestigeDesc"),
+    ppDisplay:        document.getElementById("ppDisplay"),
+    prestigeShopList: document.getElementById("prestigeShopList"),
+    themeSelector:    document.getElementById("themeSelector"),
+    cheatNotice:      document.getElementById("cheatNotice"),
+    authOverlay:      document.getElementById("authOverlay"),
+    usernameSection:  document.getElementById("usernameSection"),
+    currentUserEl:    document.getElementById("currentUser"),
+    leaderboardList:  document.getElementById("leaderboardList"),
+};
+
+// ══════════════════════════════════════════════
+//  AUDIO POOL (reuse nodes instead of cloneNode)
+// ══════════════════════════════════════════════
+const AUDIO_POOL_SIZE = 6;
+const audioPool = [];
+let audioIndex = 0;
+
+function initAudioPool() {
+    for (let i = 0; i < AUDIO_POOL_SIZE; i++) {
+        const a = new Audio('bean.m4a');
+        a.volume = 1;
+        audioPool.push(a);
+    }
+}
+
+function playClickSound() {
+    const sound = audioPool[audioIndex];
+    sound.currentTime = 0;
+    sound.play().catch(() => {}); // ignore autoplay blocks
+    audioIndex = (audioIndex + 1) % AUDIO_POOL_SIZE;
+}
+
+// ══════════════════════════════════════════════
+//  LEVEL SYSTEM
+// ══════════════════════════════════════════════
+const levelThresholds = (() => {
     const t = [0];
     let val = 30;
     for (let i = 1; i < 600; i++) {
@@ -65,18 +115,21 @@ function buildThresholds() {
         val *= 1.4;
     }
     return t;
-}
-const levelThresholds = buildThresholds();
+})();
+
 function getMaxLevel() {
-    return 100 + (prestigeCount * 50);
+    return 100 + (state.prestigeCount * 50);
 }
-function prestigeScaling() { return Math.pow(1.2, prestigeCount); }
+
+function prestigeScaling() {
+    return Math.pow(1.2, state.prestigeCount);
+}
 
 function getLevel() {
     const scale = prestigeScaling();
     let level = 1;
     for (let i = 1; i < levelThresholds.length; i++) {
-        if (totalEarned >= levelThresholds[i] * scale) level = i + 1;
+        if (state.totalEarned >= levelThresholds[i] * scale) level = i + 1;
         else break;
     }
     return Math.min(level, getMaxLevel());
@@ -87,7 +140,9 @@ function getNextThreshold() {
     return lvl >= getMaxLevel() ? null : Math.floor(levelThresholds[lvl] * prestigeScaling());
 }
 
-// ── BPS / BPC helpers ──
+// ══════════════════════════════════════════════
+//  BPS / BPC CALCULATION
+// ══════════════════════════════════════════════
 function calcBPS() {
     let total = 0;
     for (const id in upgrades) total += upgrades[id].bps * upgrades[id].owned;
@@ -97,67 +152,89 @@ function calcBPS() {
 }
 
 function calcBPC() {
-    let total = 1 + prestigeEffects.flatBPC;
+    let total = 1 + state.prestigeEffects.flatBPC;
     for (const id in upgrades) total += upgrades[id].bpc * upgrades[id].owned;
     const world = getWorldUpgrades();
     if (world) for (const id in world) total += world[id].bpc * world[id].owned;
     return total;
 }
 
-// ── Achievements ──
+// ══════════════════════════════════════════════
+//  NUMBER FORMATTING (extended range)
+// ══════════════════════════════════════════════
+const FMT_TIERS = [
+    [1e21, 'Sx'], [1e18, 'Qi'], [1e15, 'Q'], [1e12, 'T'],
+    [1e9,  'B'],  [1e6,  'M'],  [1e3,  'K'],
+];
+
+function fmt(n) {
+    for (const [threshold, suffix] of FMT_TIERS) {
+        if (n >= threshold) return (n / threshold).toFixed(1) + suffix;
+    }
+    return Math.floor(n).toString();
+}
+
+function getUpgradeCost(u) {
+    return Math.floor(u.cost * Math.pow(1.10, u.owned));
+}
+
+// ══════════════════════════════════════════════
+//  ACHIEVEMENTS
+// ══════════════════════════════════════════════
 const achievementDefs = [
-    { id: 'click10',    label: '🖱️ First Harvest',     desc: 'Click 10 times',              check: () => totalClicks >= 10        },
-    { id: 'click100',   label: '🖱️ Warming Up',        desc: 'Click 100 times',             check: () => totalClicks >= 100       },
-    { id: 'click1k',    label: '🖱️ Bean Enthusiast',   desc: 'Click 1,000 times',           check: () => totalClicks >= 1000      },
-    { id: 'click10k',   label: '🖱️ Dedicated Clicker', desc: 'Click 10,000 times',          check: () => totalClicks >= 10000     },
-    { id: 'click100k',  label: '🖱️ Bean Obsessed',     desc: 'Click 100,000 times',         check: () => totalClicks >= 100000    },
-    { id: 'earn100',    label: '🫘 Handful',            desc: 'Earn 100 beans',              check: () => totalEarned >= 100       },
-    { id: 'earn10k',    label: '🫘 Sackful',            desc: 'Earn 10,000 beans',           check: () => totalEarned >= 10000     },
-    { id: 'earn1m',     label: '🫘 Beanaire',           desc: 'Earn 1 million beans',        check: () => totalEarned >= 1e6       },
-    { id: 'earn1b',     label: '🫘 Bean Billionaire',   desc: 'Earn 1 billion beans',        check: () => totalEarned >= 1e9       },
-    { id: 'earn1t',     label: '🫘 Bean Trillionaire',  desc: 'Earn 1 trillion beans',       check: () => totalEarned >= 1e12      },
+    { id: 'click10',    label: '🖱️ First Harvest',     desc: 'Click 10 times',              check: () => state.totalClicks >= 10        },
+    { id: 'click100',   label: '🖱️ Warming Up',        desc: 'Click 100 times',             check: () => state.totalClicks >= 100       },
+    { id: 'click1k',    label: '🖱️ Bean Enthusiast',   desc: 'Click 1,000 times',           check: () => state.totalClicks >= 1000      },
+    { id: 'click10k',   label: '🖱️ Dedicated Clicker', desc: 'Click 10,000 times',          check: () => state.totalClicks >= 10000     },
+    { id: 'click100k',  label: '🖱️ Bean Obsessed',     desc: 'Click 100,000 times',         check: () => state.totalClicks >= 100000    },
+    { id: 'earn100',    label: '🫘 Handful',            desc: 'Earn 100 beans',              check: () => state.totalEarned >= 100       },
+    { id: 'earn10k',    label: '🫘 Sackful',            desc: 'Earn 10,000 beans',           check: () => state.totalEarned >= 10000     },
+    { id: 'earn1m',     label: '🫘 Beanaire',           desc: 'Earn 1 million beans',        check: () => state.totalEarned >= 1e6       },
+    { id: 'earn1b',     label: '🫘 Bean Billionaire',   desc: 'Earn 1 billion beans',        check: () => state.totalEarned >= 1e9       },
+    { id: 'earn1t',     label: '🫘 Bean Trillionaire',  desc: 'Earn 1 trillion beans',       check: () => state.totalEarned >= 1e12      },
     { id: 'level10',    label: '⭐ Sprout',             desc: 'Reach level 10',              check: () => getLevel() >= 10         },
     { id: 'level25',    label: '⭐ Seedling',           desc: 'Reach level 25',              check: () => getLevel() >= 25         },
     { id: 'level50',    label: '⭐ Sapling',            desc: 'Reach level 50',              check: () => getLevel() >= 50         },
     { id: 'level75',    label: '⭐ Full Grown',         desc: 'Reach level 75',              check: () => getLevel() >= 75         },
-    { id: 'level100', label: '⭐ The Bean Master', desc: 'Reach level 100', check: () => getLevel() >= 100 },
+    { id: 'level100',   label: '⭐ The Bean Master',    desc: 'Reach level 100',             check: () => getLevel() >= 100        },
     { id: 'upg5',       label: '🛒 Shopper',            desc: 'Own 5 of any upgrade',        check: () => Object.values(upgrades).some(u => u.owned >= 5)   },
     { id: 'upg25',      label: '🛒 Bulk Order',         desc: 'Own 25 of any upgrade',       check: () => Object.values(upgrades).some(u => u.owned >= 25)  },
     { id: 'upg100',     label: '🛒 Bean Hoarder',       desc: 'Own 100 of any upgrade',      check: () => Object.values(upgrades).some(u => u.owned >= 100) },
-    { id: 'prestige1',  label: '🔁 Reborn',             desc: 'Prestige for the first time', check: () => prestigeCount >= 1       },
-    { id: 'prestige3',  label: '🔁 Three Lives',        desc: 'Prestige 3 times',            check: () => prestigeCount >= 3       },
-    { id: 'prestige5',  label: '🔁 Bean Lives',         desc: 'Prestige 5 times',            check: () => prestigeCount >= 5       },
-    { id: 'prestige10', label: '🔁 Eternal Returner',   desc: 'Prestige 10 times',           check: () => prestigeCount >= 10      },
-    { id: 'spacebean',  label: '🌌 Cosmonaut',          desc: 'Unlock Space theme',          check: () => prestigeCount >= 1       },
-    { id: 'voidbean',   label: '🕳️ Void Walker',        desc: 'Unlock Void theme',           check: () => prestigeCount >= 5       },
+    { id: 'prestige1',  label: '🔁 Reborn',             desc: 'Prestige for the first time', check: () => state.prestigeCount >= 1       },
+    { id: 'prestige3',  label: '🔁 Three Lives',        desc: 'Prestige 3 times',            check: () => state.prestigeCount >= 3       },
+    { id: 'prestige5',  label: '🔁 Bean Lives',         desc: 'Prestige 5 times',            check: () => state.prestigeCount >= 5       },
+    { id: 'prestige10', label: '🔁 Eternal Returner',   desc: 'Prestige 10 times',           check: () => state.prestigeCount >= 10      },
+    { id: 'spacebean',  label: '🌌 Cosmonaut',          desc: 'Unlock Space theme',          check: () => state.prestigeCount >= 1       },
+    { id: 'voidbean',   label: '🕳️ Void Walker',        desc: 'Unlock Void theme',           check: () => state.prestigeCount >= 5       },
     { id: 'allupgrades',label: '🏆 Full Garden',        desc: 'Unlock every upgrade',        check: () => Object.values(upgrades).every(u => u.owned > 0)   },
     { id: 'ppspend1',   label: '⚗️ Prestige Scholar',   desc: 'Buy a prestige upgrade',      check: () => Object.values(prestigeUpgrades).some(u => u.level > 0) },
 ];
 
-// ── Random events ──
+// ══════════════════════════════════════════════
+//  RANDOM EVENTS (no global mutation — pass multiplier through state)
+// ══════════════════════════════════════════════
 const eventDefs = [
     {
         id: 'rain', title: '🌧️ Bean Rain!', desc: 'BPS x3 for 20 seconds!',
         duration: 20000, color: '#4fc3f7',
-        onStart: () => { eventMultiplier = 3; },
-        onEnd:   () => { eventMultiplier = 1; },
+        onStart: () => { state.eventMultiplier = 3; },
+        onEnd:   () => { state.eventMultiplier = 1; },
     },
     {
         id: 'frenzy', title: '⚡ Click Frenzy!', desc: 'Clicks worth 5x for 15 seconds!',
         duration: 15000, color: '#ffb300',
-        onStart: () => { eventMultiplier = 5; },
-        onEnd:   () => { eventMultiplier = 1; },
+        onStart: () => { state.eventMultiplier = 5; },
+        onEnd:   () => { state.eventMultiplier = 1; },
     },
     {
         id: 'drop', title: '🎁 Bean Drop!', desc: '',
         duration: 0, color: '#66bb6a',
         onStart: () => {
-            const bonus = Math.floor(Math.max(beanAmount * 0.1, 50));
-            beanAmount  += bonus;
-            totalEarned += bonus;
+            const bonus = Math.floor(Math.max(state.beans * 0.1, 50));
+            state.beans     += bonus;
+            state.totalEarned += bonus;
             updateBeanDisplay();
-            ls.set("beans", beanAmount);
-            ls.set("totalEarned", totalEarned);
+            persistCore();
             eventDefs.find(e => e.id === 'drop').desc = `Free ${fmt(bonus)} beans!`;
         },
         onEnd: () => {},
@@ -166,42 +243,29 @@ const eventDefs = [
         id: 'blight', title: '🐛 Bean Blight!', desc: '',
         duration: 0, color: '#ef5350',
         onStart: () => {
-            const blightPct = 0.15 - prestigeEffects.blightReduction;
-            beanAmount = Math.floor(beanAmount * (1 - blightPct));
+            const blightPct = 0.15 - state.prestigeEffects.blightReduction;
+            state.beans = Math.floor(state.beans * (1 - blightPct));
             eventDefs.find(e => e.id === 'blight').desc = `Lost ${Math.round(blightPct * 100)}% of your beans!`;
             updateBeanDisplay();
-            ls.set("beans", beanAmount);
+            persistCore();
         },
         onEnd: () => {},
     },
     {
         id: 'harvest', title: '🌾 Double Harvest!', desc: 'BPS x2 for 30 seconds!',
         duration: 30000, color: '#aed581',
-        onStart: () => { eventMultiplier = 2; },
-        onEnd:   () => { eventMultiplier = 1; },
+        onStart: () => { state.eventMultiplier = 2; },
+        onEnd:   () => { state.eventMultiplier = 1; },
     },
 ];
 
-// ── Utility ──
-function fmt(n) {
-    if (n >= 1e18) return (n / 1e18).toFixed(1) + 'Qi';
-    if (n >= 1e15) return (n / 1e15).toFixed(1) + 'Q';
-    if (n >= 1e12) return (n / 1e12).toFixed(1) + 'T';
-    if (n >= 1e9)  return (n / 1e9).toFixed(1)  + 'B';
-    if (n >= 1e6)  return (n / 1e6).toFixed(1)  + 'M';
-    if (n >= 1e3)  return (n / 1e3).toFixed(1)  + 'K';
-    return Math.floor(n).toString();
-}
-
-function getUpgradeCost(u) {
-    return Math.floor(u.cost * Math.pow(1.10, u.owned));
-}
-
-// ── Theme system ──
+// ══════════════════════════════════════════════
+//  THEME SYSTEM
+// ══════════════════════════════════════════════
 function applyTheme(themeId) {
-    const unlocked = getUnlockedThemes(prestigeCount);
+    const unlocked = getUnlockedThemes(state.prestigeCount);
     const theme = unlocked.find(t => t.id === themeId) || unlocked[unlocked.length - 1];
-    activeThemeId = theme.id;
+    state.activeThemeId = theme.id;
     ls.set("beanTheme", theme.id);
 
     themes.forEach(t => document.body.classList.remove(t.bodyClass));
@@ -216,44 +280,43 @@ function applyTheme(themeId) {
 }
 
 function buildThemeSelector() {
-    const container = document.getElementById("themeSelector");
-    if (!container) return;
-    container.innerHTML = '';
-    const unlocked = getUnlockedThemes(prestigeCount);
-    const locked   = themes.filter(t => t.unlockPrestige > prestigeCount);
+    if (!dom.themeSelector) return;
+    dom.themeSelector.innerHTML = '';
+    const unlocked = getUnlockedThemes(state.prestigeCount);
+    const locked   = themes.filter(t => t.unlockPrestige > state.prestigeCount);
 
     for (const theme of unlocked) {
         const btn = document.createElement('button');
-        btn.className = 'theme-btn' + (theme.id === activeThemeId ? ' theme-active' : '');
+        btn.className = 'theme-btn' + (theme.id === state.activeThemeId ? ' theme-active' : '');
         btn.innerHTML = `<span class="theme-emoji">${theme.emoji}</span><span class="theme-name">${theme.name}</span><span class="theme-desc">${theme.desc}</span>`;
         btn.addEventListener('click', () => {
             applyTheme(theme.id);
             buildThemeSelector();
         });
-        container.appendChild(btn);
+        dom.themeSelector.appendChild(btn);
     }
     for (const theme of locked) {
         const div = document.createElement('div');
         div.className = 'theme-btn theme-locked';
         div.innerHTML = `<span class="theme-emoji">🔒</span><span class="theme-name">${theme.name}</span><span class="theme-desc">Unlocks at prestige ${theme.unlockPrestige}</span>`;
-        container.appendChild(div);
+        dom.themeSelector.appendChild(div);
     }
 }
 
-// ── Prestige Shop ──
+// ══════════════════════════════════════════════
+//  PRESTIGE SHOP
+// ══════════════════════════════════════════════
 function getPPUpgradeCost(id) {
     const u = prestigeUpgrades[id];
     return u.cost + u.level;
 }
 
 function buildPrestigeShop() {
-    const container = document.getElementById("prestigeShopList");
-    if (!container) return;
-    container.innerHTML = '';
+    if (!dom.prestigeShopList) return;
+    dom.prestigeShopList.innerHTML = '';
 
-    const pp   = getAvailablePP(prestigeCount);
-    const ppEl = document.getElementById("ppDisplay");
-    if (ppEl) ppEl.textContent = `✦ ${pp} Prestige Point${pp !== 1 ? 's' : ''} available`;
+    const pp = getAvailablePP(state.prestigeCount);
+    if (dom.ppDisplay) dom.ppDisplay.textContent = `✦ ${pp} Prestige Point${pp !== 1 ? 's' : ''} available`;
 
     for (const id in prestigeUpgrades) {
         const u         = prestigeUpgrades[id];
@@ -273,22 +336,22 @@ function buildPrestigeShop() {
             <div class="pshop-cost">${maxed ? '✦ MAXED' : `Cost: ${cost} PP`}</div>
         `;
         if (!maxed) card.addEventListener('click', () => buyPrestigeUpgrade(id));
-        container.appendChild(card);
+        dom.prestigeShopList.appendChild(card);
     }
 }
 
 function buyPrestigeUpgrade(id) {
-    const u    = prestigeUpgrades[id];
+    const u = prestigeUpgrades[id];
     if (u.level >= u.maxLevel) return;
     const cost = getPPUpgradeCost(id);
-    const pp   = getAvailablePP(prestigeCount);
+    const pp   = getAvailablePP(state.prestigeCount);
     if (pp < cost) {
         showToast('✦ Not Enough PP', 'Prestige more to earn points.', '#ef5350');
         return;
     }
     u.level++;
     ls.set(`pshop_${id}`, u.level);
-    prestigeEffects = getPrestigeEffects();
+    state.prestigeEffects = getPrestigeEffects();
     showToast(`${u.emoji} ${u.name}`, `Level ${u.level} — ${u.effectDesc(u.level)}`, '#ce93d8');
     buildPrestigeShop();
     buildThemeSelector();
@@ -297,27 +360,28 @@ function buyPrestigeUpgrade(id) {
     saveToCloud();
 }
 
-// ── Display updates ──
+// ══════════════════════════════════════════════
+//  DISPLAY UPDATES
+// ══════════════════════════════════════════════
 function updateBeanDisplay() {
-    beanDisplay.textContent = fmt(beanAmount);
+    dom.beanDisplay.textContent = fmt(state.beans);
 }
 
 function updateBPSDisplay() {
-    const multiplier = activeEvent && (activeEvent.id === 'rain' || activeEvent.id === 'harvest') ? eventMultiplier : 1;
-    const total      = Math.floor(calcBPS() * getPrestigeMulti() * multiplier);
-    document.getElementById("ticker").textContent    = `BPS: ${fmt(total)}`;
-    document.getElementById("perSecond").textContent = `${fmt(total)} per second`;
+    const multiplier = state.activeEvent && (state.activeEvent.id === 'rain' || state.activeEvent.id === 'harvest') ? state.eventMultiplier : 1;
+    const total = Math.floor(calcBPS() * getPrestigeMulti() * multiplier);
+    dom.ticker.textContent    = `BPS: ${fmt(total)}`;
+    dom.perSecond.textContent = `${fmt(total)} per second`;
 }
 
 function updateLevelDisplay() {
     const level = getLevel();
     const next  = getNextThreshold();
-    const el    = document.getElementById("levelDisplay");
     if (next !== null) {
-        const pct = Math.min(100, Math.floor((totalEarned / next) * 100));
-        el.innerHTML = `LVL ${level} <span class="level-bar-wrap"><span class="level-bar-fill" style="width:${pct}%"></span></span> <span class="level-next">${fmt(totalEarned)} / ${fmt(next)}</span>`;
+        const pct = Math.min(100, Math.floor((state.totalEarned / next) * 100));
+        dom.levelDisplay.innerHTML = `LVL ${level} <span class="level-bar-wrap"><span class="level-bar-fill" style="width:${pct}%"></span></span> <span class="level-next">${fmt(state.totalEarned)} / ${fmt(next)}</span>`;
     } else {
-        el.innerHTML = `LVL ${getMaxLevel()} <span class="level-max">✦ MAX</span>`;
+        dom.levelDisplay.innerHTML = `LVL ${getMaxLevel()} <span class="level-max">✦ MAX</span>`;
     }
 }
 
@@ -338,6 +402,7 @@ function updateCardVisibility() {
     }
 }
 
+// ── In-place card text updates (no DOM rebuild) ──
 function updateCardText(id, upgradeSet = null) {
     const set    = upgradeSet || upgrades;
     const isWorld = upgradeSet !== null;
@@ -353,57 +418,53 @@ function updateCardText(id, upgradeSet = null) {
     if (costEl)  costEl.textContent  = `🫘 ${fmt(getUpgradeCost(u))}`;
 }
 
-function updatePrestigeDisplay() {
-    const el       = document.getElementById("prestigeInfo");
-    const scalePct = Math.round((prestigeScaling() - 1) * 100);
-    const pp       = computePP(prestigeCount);
-    const perRun   = Math.round(prestigeEffects.prestigePerRun * 100);
-
-    const descEl = document.getElementById("prestigeDesc");
-    if (descEl) {
-        descEl.innerHTML = `Reset at <strong>level ${getMaxLevel()}</strong> for a permanent <strong>+${perRun}% bean bonus</strong>. Each prestige makes leveling <strong>20% harder</strong>.`;
-    }
-
-    if (el) {
-        el.textContent = prestigeCount > 0
-            ? `✦ ${prestigeCount} Prestige${prestigeCount !== 1 ? 's' : ''} · +${Math.round((getPrestigeMulti() - 1) * 100)}% beans · Levels +${scalePct}% harder · ${pp} PP total`
-            : `No prestiges yet. Each prestige resets progress but gives +${perRun}% beans permanently.`;
-    }
-
-    // Keep mobile in sync if prestige panel is open
-    const descDst = document.getElementById("prestigeDescMobile");
-    if (descEl && descDst) descDst.innerHTML = descEl.innerHTML;
-    const dstInfo = document.getElementById("prestigeInfoMobile");
-    if (el && dstInfo) dstInfo.textContent = el.textContent;
-}
-
-// ── Build upgrade cards ──
-function buildUpgradeCards() {
-    buildUpgradeList('upgradeList', upgrades, false);
-
-    const world     = getWorldUpgrades();
-    const worldTab  = document.getElementById('worldUpgradeTab');
-    const worldList = document.getElementById('worldUpgradeList');
-    if (worldTab)         worldTab.style.display = world ? '' : 'none';
-    if (worldList && world) buildUpgradeList('worldUpgradeList', world, true);
-}
-
 function updateCardAffordability() {
     for (const id in upgrades) {
         const card = document.getElementById(id);
         if (!card) continue;
-        const cost = getUpgradeCost(upgrades[id]);
-        card.classList.toggle('insufficient-funds', beanAmount < cost);
+        card.classList.toggle('insufficient-funds', state.beans < getUpgradeCost(upgrades[id]));
     }
     const world = getWorldUpgrades();
     if (world) {
         for (const id in world) {
             const card = document.getElementById(`world_${id}`);
             if (!card) continue;
-            const cost = getUpgradeCost(world[id]);
-            card.classList.toggle('insufficient-funds', beanAmount < cost);
+            card.classList.toggle('insufficient-funds', state.beans < getUpgradeCost(world[id]));
         }
     }
+}
+
+function updatePrestigeDisplay() {
+    const scalePct = Math.round((prestigeScaling() - 1) * 100);
+    const pp       = computePP(state.prestigeCount);
+    const perRun   = Math.round(state.prestigeEffects.prestigePerRun * 100);
+
+    if (dom.prestigeDesc) {
+        dom.prestigeDesc.innerHTML = `Reset at <strong>level ${getMaxLevel()}</strong> for a permanent <strong>+${perRun}% bean bonus</strong>. Each prestige makes leveling <strong>20% harder</strong>.`;
+    }
+
+    if (dom.prestigeInfo) {
+        dom.prestigeInfo.textContent = state.prestigeCount > 0
+            ? `✦ ${state.prestigeCount} Prestige${state.prestigeCount !== 1 ? 's' : ''} · +${Math.round((getPrestigeMulti() - 1) * 100)}% beans · Levels +${scalePct}% harder · ${pp} PP total`
+            : `No prestiges yet. Each prestige resets progress but gives +${perRun}% beans permanently.`;
+    }
+
+    // Keep mobile in sync
+    const descDst = document.getElementById("prestigeDescMobile");
+    if (dom.prestigeDesc && descDst) descDst.innerHTML = dom.prestigeDesc.innerHTML;
+    const dstInfo = document.getElementById("prestigeInfoMobile");
+    if (dom.prestigeInfo && dstInfo) dstInfo.textContent = dom.prestigeInfo.textContent;
+}
+
+// ══════════════════════════════════════════════
+//  BUILD UPGRADE CARDS
+// ══════════════════════════════════════════════
+function buildUpgradeCards() {
+    buildUpgradeList('upgradeList', upgrades, false);
+
+    const world = getWorldUpgrades();
+    if (dom.worldUpgradeTab) dom.worldUpgradeTab.style.display = world ? '' : 'none';
+    if (dom.worldUpgradeList && world) buildUpgradeList('worldUpgradeList', world, true);
 }
 
 function buildUpgradeList(containerId, upgradeSet, isWorld) {
@@ -439,12 +500,14 @@ function buildUpgradeList(containerId, upgradeSet, isWorld) {
     }
 }
 
-// ── Toast ──
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
 function showToast(title, desc, color = '#4caf50') {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `<span class="toast-title" style="color:${color}">${title}</span>${desc ? `<span class="toast-desc">${desc}</span>` : ''}`;
-    document.getElementById('toastContainer').appendChild(toast);
+    dom.toastContainer.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('toast-show'));
     setTimeout(() => {
         toast.classList.remove('toast-show');
@@ -463,72 +526,89 @@ function showBanner(msg) {
     document.body.appendChild(banner);
 }
 
-// ── Achievements ──
+// ══════════════════════════════════════════════
+//  ACHIEVEMENT CHECKS (throttled — only run when dirty)
+// ══════════════════════════════════════════════
+let achievementsDirty = true;
+
+function markAchievementsDirty() {
+    achievementsDirty = true;
+}
+
 function checkAchievements() {
+    if (!achievementsDirty) return;
+    let anyNew = false;
     for (const def of achievementDefs) {
-        if (!unlockedAchievements.includes(def.id) && def.check()) {
-            unlockedAchievements.push(def.id);
-            ls.setJSON("beanAchievements", unlockedAchievements);
+        if (!state.achievements.includes(def.id) && def.check()) {
+            state.achievements.push(def.id);
             showToast(`🏆 ${def.label}`, def.desc, '#ffd54f');
-            renderAchievements();
+            anyNew = true;
         }
     }
+    if (anyNew) {
+        ls.setJSON("beanAchievements", state.achievements);
+        renderAchievements();
+    }
+    achievementsDirty = false;
 }
 
 function renderAchievements() {
-    const container = document.getElementById('achievementList');
-    if (!container) return;
-    container.innerHTML = '';
-    const earned = achievementDefs.filter(d => unlockedAchievements.includes(d.id));
-    const locked  = achievementDefs.filter(d => !unlockedAchievements.includes(d.id));
-    document.getElementById('achCount').textContent = `${earned.length} / ${achievementDefs.length}`;
+    if (!dom.achievementList) return;
+    dom.achievementList.innerHTML = '';
+    const earned = achievementDefs.filter(d => state.achievements.includes(d.id));
+    const locked = achievementDefs.filter(d => !state.achievements.includes(d.id));
+    if (dom.achCount) dom.achCount.textContent = `${earned.length} / ${achievementDefs.length}`;
     for (const def of [...earned, ...locked]) {
-        const isEarned = unlockedAchievements.includes(def.id);
+        const isEarned = state.achievements.includes(def.id);
         const div = document.createElement('div');
         div.className = 'achievement-item' + (isEarned ? ' earned' : '');
         div.innerHTML = `<span class="ach-label">${isEarned ? def.label : '???'}</span><span class="ach-desc">${isEarned ? def.desc : 'Keep playing...'}</span>`;
-        container.appendChild(div);
+        dom.achievementList.appendChild(div);
     }
 }
 
-// ── Random events ──
+// ══════════════════════════════════════════════
+//  RANDOM EVENTS
+// ══════════════════════════════════════════════
 function triggerEvent(def) {
-    if (activeEvent) return;
-    activeEvent = def;
+    if (state.activeEvent) return;
+    state.activeEvent = def;
     def.onStart();
     showToast(def.title, def.desc, def.color);
     updateBPSDisplay();
+
     if (def.duration > 0) {
-        const bar = document.getElementById('eventBar');
-        bar.style.display = 'flex';
-        bar.querySelector('.event-label').textContent = def.title;
+        dom.eventBar.style.display = 'flex';
+        dom.eventBar.querySelector('.event-label').textContent = def.title;
         let remaining = def.duration;
         const tick = setInterval(() => {
             remaining -= 100;
-            bar.querySelector('.event-fill').style.width = ((remaining / def.duration) * 100) + '%';
+            dom.eventBar.querySelector('.event-fill').style.width = ((remaining / def.duration) * 100) + '%';
             if (remaining <= 0) {
                 clearInterval(tick);
-                bar.style.display = 'none';
+                dom.eventBar.style.display = 'none';
                 def.onEnd();
-                activeEvent = null;
+                state.activeEvent = null;
                 updateBPSDisplay();
             }
         }, 100);
     } else {
-        activeEvent = null;
+        state.activeEvent = null;
     }
 }
 
 function scheduleEvent() {
     const base  = 60000 + Math.random() * 90000;
-    const delay = base * (prestigeEffects.eventSpeedMult || 1);
+    const delay = base * (state.prestigeEffects.eventSpeedMult || 1);
     setTimeout(() => {
         triggerEvent(eventDefs[Math.floor(Math.random() * eventDefs.length)]);
         scheduleEvent();
     }, delay);
 }
 
-// ── Click handler ──
+// ══════════════════════════════════════════════
+//  ANTI-CHEAT
+// ══════════════════════════════════════════════
 let lastClick = 0;
 const CLICK_COOLDOWN = 50;
 const clickIntervals = [];
@@ -542,37 +622,35 @@ function detectAutoclicker() {
     const variance = clickIntervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / clickIntervals.length;
     const stdDev   = Math.sqrt(variance);
 
-    // Near-zero variance at any speed under 50ms (20 CPS) — no human is this consistent
     if (stdDev < 5 && mean < 50) return true;
-    // Slightly looser check for slower autoclickers (50-150ms range)
     if (stdDev < 3 && mean < 150) return true;
-
     return false;
 }
 
 function punishAutoclicker() {
     autoclickWarnings++;
-    const username = currentUser ? currentUser.displayName : 'unknown';
-    const oldBeans = beanAmount;
-    beanAmount = 0;
-    ls.set("beans", 0);
+    const username = state.currentUser ? state.currentUser.displayName : 'unknown';
+    const oldBeans = state.beans;
+    state.beans = 0;
+    persistCore();
     updateBeanDisplay();
- 
+
     reportCheat(username, `Autoclicker detected — wiped ${fmt(oldBeans)} beans (warning #${autoclickWarnings})`);
- 
     showToast('🤖 Autoclicker Detected', `Lost ${fmt(oldBeans)} beans. Click yourself!`, '#ef5350');
- 
-    const cheatMsg = document.getElementById('cheatNotice');
-    if (cheatMsg) {
-        cheatMsg.textContent = `⚠️ Autoclicker detected ${autoclickWarnings} time${autoclickWarnings !== 1 ? 's' : ''}. Beans wiped.`;
-        cheatMsg.style.display = 'block';
+
+    if (dom.cheatNotice) {
+        dom.cheatNotice.textContent = `⚠️ Autoclicker detected ${autoclickWarnings} time${autoclickWarnings !== 1 ? 's' : ''}. Beans wiped.`;
+        dom.cheatNotice.style.display = 'block';
     }
- 
+
     clickFrozen = true;
     setTimeout(() => { clickFrozen = false; }, 10000);
     clickIntervals.length = 0;
 }
 
+// ══════════════════════════════════════════════
+//  CLICK HANDLER
+// ══════════════════════════════════════════════
 function beanclicker() {
     if (clickFrozen) return;
 
@@ -594,52 +672,58 @@ function beanclicker() {
         return;
     }
 
-    const frenzy     = activeEvent && activeEvent.id === 'frenzy' ? eventMultiplier : 1;
+    const frenzy     = state.activeEvent && state.activeEvent.id === 'frenzy' ? state.eventMultiplier : 1;
     const clicktotal = Math.floor(calcBPC() * getPrestigeMulti() * frenzy);
 
-    beanAmount  += clicktotal;
-    totalEarned += clicktotal;
-    totalClicks++;
+    state.beans     += clicktotal;
+    state.totalEarned += clicktotal;
+    state.totalClicks++;
 
     updateBeanDisplay();
-    ls.set("beans", beanAmount);
-    ls.set("totalEarned", totalEarned);
-    ls.set("totalClicks", totalClicks);
+    persistCore();
 
-    const sound = beanSound.cloneNode();
-    sound.volume = 1;
-    sound.play();
-
+    playClickSound();
     spawnFloatText(`+${fmt(clicktotal)}`);
 
-    beanEl.classList.remove('bean-clicked');
-    void beanEl.offsetWidth;
-    beanEl.classList.add('bean-clicked');
+    dom.beanEl.classList.remove('bean-clicked');
+    void dom.beanEl.offsetWidth;
+    dom.beanEl.classList.add('bean-clicked');
 
     updateLevelDisplay();
     updateCardVisibility();
     updateCardAffordability();
+    markAchievementsDirty();
     checkAchievements();
 }
 
-// ── BPS tick ──
+// ══════════════════════════════════════════════
+//  BPS TICK (throttled heavy operations)
+// ══════════════════════════════════════════════
+let tickCount = 0;
+
 function bpsTick() {
-    const multiplier = activeEvent && (activeEvent.id === 'rain' || activeEvent.id === 'harvest') ? eventMultiplier : 1;
-    const total      = Math.floor(calcBPS() * getPrestigeMulti() * multiplier);
+    const multiplier = state.activeEvent && (state.activeEvent.id === 'rain' || state.activeEvent.id === 'harvest') ? state.eventMultiplier : 1;
+    const total = Math.floor(calcBPS() * getPrestigeMulti() * multiplier);
+
     if (total > 0) {
-        beanAmount  += total;
-        totalEarned += total;
+        state.beans     += total;
+        state.totalEarned += total;
         updateBeanDisplay();
-        ls.set("beans", beanAmount);
-        ls.set("totalEarned", totalEarned);
+        persistCore();
     }
+
     updateBPSDisplay();
-    updateLevelDisplay();
-    updateCardVisibility();
-    updateCardAffordability();
-    checkAchievements();
+    tickCount++;
+
+    // Heavy operations: only every 3 ticks (3 seconds)
+    if (tickCount % 3 === 0) {
+        updateLevelDisplay();
+        updateCardVisibility();
+        updateCardAffordability();
+        markAchievementsDirty();
+        checkAchievements();
+    }
 }
-setInterval(bpsTick, 1000);
 
 // ── Float text ──
 function spawnFloatText(text) {
@@ -647,7 +731,7 @@ function spawnFloatText(text) {
     el.textContent = text;
     el.className   = "float-text";
     document.body.appendChild(el);
-    const rect = beanPic.getBoundingClientRect();
+    const rect = dom.beanPic.getBoundingClientRect();
     el.style.left = (rect.left + rect.width / 2 + (Math.random() * 80 - 40)) + "px";
     el.style.top  = (rect.top + (Math.random() * 60 - 30)) + "px";
     setTimeout(() => el.remove(), 800);
@@ -663,49 +747,54 @@ function flashNoFunds(id) {
     setTimeout(() => card.classList.remove('no-funds'), 400);
 }
 
-// ── Buy upgrade ──
+// ══════════════════════════════════════════════
+//  BUY UPGRADE
+// ══════════════════════════════════════════════
 function buyUpgrade(id, upgradeSet = null) {
     const set  = upgradeSet || upgrades;
     const u    = set[id];
     const cost = getUpgradeCost(u);
-    if (beanAmount < cost) {
+    if (state.beans < cost) {
         flashNoFunds(upgradeSet ? `world_${id}` : id);
         return;
     }
-    beanAmount -= cost;
+    state.beans -= cost;
     u.owned++;
-    ls.set("beans", beanAmount);
-    ls.set(upgradeSet ? `wupg_${activeThemeId}_${id}` : `upg_${id}`, u.owned);
+    persistCore();
+    ls.set(upgradeSet ? `wupg_${state.activeThemeId}_${id}` : `upg_${id}`, u.owned);
+
     updateCardText(id, upgradeSet);
     updateBeanDisplay();
     updateBPSDisplay();
     updateLevelDisplay();
     updateCardVisibility();
-    checkAchievements();
     updateCardAffordability();
+    markAchievementsDirty();
+    checkAchievements();
 }
 
-// ── Prestige ──
+// ══════════════════════════════════════════════
+//  PRESTIGE
+// ══════════════════════════════════════════════
 function prestige() {
     if (getLevel() < getMaxLevel()) {
         showToast('⚠️ Not Yet', `Reach level ${getMaxLevel()} to prestige.`, '#ef5350');
         return;
     }
-    const perRun = Math.round(prestigeEffects.prestigePerRun * 100);
+    const perRun = Math.round(state.prestigeEffects.prestigePerRun * 100);
     if (!confirm(`Prestige? Everything resets but you gain a permanent +${perRun}% bean multiplier.\nCurrent bonus: +${Math.round((getPrestigeMulti() - 1) * 100)}%`)) return;
 
-    prestigeCount++;
-    ls.set("prestigeCount", prestigeCount);
+    state.prestigeCount++;
 
-    const keepCount = prestigeEffects.keepUpgrades;
+    const keepCount = state.prestigeEffects.keepUpgrades;
     const keptOwned = {};
     if (keepCount > 0) {
         for (const id in upgrades) keptOwned[id] = Math.min(upgrades[id].owned, keepCount);
     }
 
-    beanAmount  = prestigeEffects.startingBeans;
-    totalEarned = 0;
-    totalClicks = 0;
+    state.beans       = state.prestigeEffects.startingBeans;
+    state.totalEarned = 0;
+    state.totalClicks = 0;
 
     for (const id in upgrades) {
         upgrades[id].owned = keepCount > 0 ? (keptOwned[id] || 0) : 0;
@@ -720,15 +809,12 @@ function prestige() {
         }
     }
 
-    ls.set("beans", beanAmount);
-    ls.set("totalEarned", 0);
-    ls.set("totalClicks", 0);
+    persistCore();
+    state.prestigeEffects = getPrestigeEffects();
 
-    prestigeEffects = getPrestigeEffects();
-
-    const unlocked = getUnlockedThemes(prestigeCount);
+    const unlocked = getUnlockedThemes(state.prestigeCount);
     const newTheme = unlocked[unlocked.length - 1];
-    if (newTheme.id !== activeThemeId) {
+    if (newTheme.id !== state.activeThemeId) {
         showToast(`🎨 New Theme!`, `${newTheme.emoji} ${newTheme.name} unlocked!`, newTheme.id === 'void' ? '#9c27b0' : '#ce93d8');
         applyTheme(newTheme.id);
     }
@@ -743,21 +829,27 @@ function prestige() {
     buildThemeSelector();
     buildUpgradeCards();
     for (const id in upgrades) updateCardText(id);
-    saveToCloud();
-    checkAchievements();
     updateCardAffordability();
+    markAchievementsDirty();
+    checkAchievements();
+    saveToCloud();
 }
 
-// ── Tabs ──
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+let leaderboardInterval = null;
+
 function switchTab(tabName, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('tab-' + tabName).classList.add('active');
+
     if (tabName === 'leaderboard') {
         loadLeaderboard();
         if (!leaderboardInterval) {
-            leaderboardInterval = setInterval(loadLeaderboard, 60000); // Auto-update every 60 seconds
+            leaderboardInterval = setInterval(loadLeaderboard, 60000);
         }
     } else {
         if (leaderboardInterval) {
@@ -768,22 +860,17 @@ function switchTab(tabName, btn) {
     if (tabName === 'pshop') { buildPrestigeShop(); buildThemeSelector(); }
 }
 
-// ── Leaderboard ──
+// ══════════════════════════════════════════════
+//  LEADERBOARD
+// ══════════════════════════════════════════════
 function saveUsername() {
     // No-op — username is set at signup via Firebase Auth displayName
-    // Kept for compatibility with any HTML onclick references
 }
 
 function showUsernameDisplay(name) {
-    document.getElementById('usernameSection').style.display = 'none';
-    const el = document.getElementById('currentUser');
-    el.style.display = 'block';
-    el.innerHTML = `<span class="current-user-name">✦ ${escapeHtml(name)}</span>`;
-}
-
-function changeUsername() {
-    document.getElementById('usernameSection').style.display = 'flex';
-    document.getElementById('currentUser').style.display    = 'none';
+    dom.usernameSection.style.display = 'none';
+    dom.currentUserEl.style.display = 'block';
+    dom.currentUserEl.innerHTML = `<span class="current-user-name">✦ ${escapeHtml(name)}</span>`;
 }
 
 function escapeHtml(str) {
@@ -792,132 +879,148 @@ function escapeHtml(str) {
 
 let lastLBSubmit = 0;
 async function loadLeaderboard() {
-    const list     = document.getElementById('leaderboardList');
-    list.innerHTML = '<div class="lb-loading">loading...</div>';
+    dom.leaderboardList.innerHTML = '<div class="lb-loading">loading...</div>';
     const now = Date.now();
-    if (currentUser && now - lastLBSubmit > 30000) {
-        await submitScore(currentUser.uid, currentUser.displayName, getLevel(), totalEarned, prestigeCount);
+    if (state.currentUser && now - lastLBSubmit > 30000) {
+        await submitScore(state.currentUser.uid, state.currentUser.displayName, getLevel(), state.totalEarned, state.prestigeCount);
         lastLBSubmit = now;
     }
     const entries = await fetchLeaderboard();
     if (entries.length === 0) {
-        list.innerHTML = '<div class="lb-loading">No entries yet.</div>';
+        dom.leaderboardList.innerHTML = '<div class="lb-loading">No entries yet.</div>';
         return;
     }
-    list.innerHTML = '';
+    dom.leaderboardList.innerHTML = '';
     entries.forEach((e, i) => {
         const div  = document.createElement('div');
-        const isMe = currentUser && currentUser.displayName === e.username;
+        const isMe = state.currentUser && state.currentUser.displayName === e.username;
         div.className = 'lb-entry' + (isMe ? ' lb-me' : '');
- 
+
         const rank = document.createElement('span');
         rank.className   = 'lb-rank';
         rank.textContent = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
- 
+
         const name = document.createElement('span');
         name.className   = 'lb-name';
         name.textContent = e.username;
- 
+
         const level = document.createElement('span');
         level.className   = 'lb-level';
         level.textContent = `LVL ${e.level}`;
- 
+
         div.appendChild(rank);
         div.appendChild(name);
         div.appendChild(level);
- 
+
         if (e.prestigeCount > 0) {
             const p = document.createElement('span');
             p.className   = 'lb-prestige';
             p.textContent = `✦${e.prestigeCount}`;
             div.appendChild(p);
         }
-        list.appendChild(div);
+        dom.leaderboardList.appendChild(div);
     });
 }
 
-// ── Dev reset ──
-function devReset() { localStorage.clear(); location.reload(); }
-
+// ══════════════════════════════════════════════
+//  CLOUD SAVE / LOAD
+// ══════════════════════════════════════════════
 async function saveToCloud() {
-    if (!currentUser) return;
-    const state = {
-        beans:          beanAmount,
-        totalEarned:    totalEarned,
-        totalClicks:    totalClicks,
-        prestigeCount:  prestigeCount,
-        beanTheme:      activeThemeId,
-        achievements:   unlockedAchievements,
+    if (!state.currentUser) return;
+
+    const save = {
+        beans:         state.beans,
+        totalEarned:   state.totalEarned,
+        totalClicks:   state.totalClicks,
+        prestigeCount: state.prestigeCount,
+        beanTheme:     state.activeThemeId,
+        achievements:  state.achievements,
+        upgrades:      {},
+        worldUpgrades: {},
+        prestigeShop:  {},
     };
-    // Save upgrade counts
-    for (const id in upgrades) state[`upg_${id}`] = upgrades[id].owned;
+
+    for (const id in upgrades) save.upgrades[id] = upgrades[id].owned;
     for (const themeId in worldUpgrades) {
+        save.worldUpgrades[themeId] = {};
         for (const id in worldUpgrades[themeId]) {
-            state[`wupg_${themeId}_${id}`] = worldUpgrades[themeId][id].owned;
+            save.worldUpgrades[themeId][id] = worldUpgrades[themeId][id].owned;
         }
     }
-    for (const id in prestigeUpgrades) state[`pshop_${id}`] = prestigeUpgrades[id].level;
-    await saveGameState(currentUser.uid, state);
+    for (const id in prestigeUpgrades) save.prestigeShop[id] = prestigeUpgrades[id].level;
+
+    await saveGameState(state.currentUser.uid, save);
 }
 
 async function loadFromCloud(userId) {
-    const state = await loadGameState(userId);
-    if (!state) return; // no cloud save, use localStorage as fallback
+    const save = await loadGameState(userId);
+    if (!save) return; // no cloud save
 
-    // Restore everything from cloud
-    beanAmount    = state.beans        ?? ls.get("beans");
-    totalEarned   = state.totalEarned  ?? ls.get("totalEarned");
-    totalClicks   = state.totalClicks  ?? ls.get("totalClicks");
-    prestigeCount = state.prestigeCount ?? ls.get("prestigeCount");
-    activeThemeId = state.beanTheme    ?? ls.str("beanTheme", "default");
-    unlockedAchievements = state.achievements ?? ls.getJSON("beanAchievements", []);
+    state.beans         = save.beans         ?? ls.get("beans");
+    state.totalEarned   = save.totalEarned   ?? ls.get("totalEarned");
+    state.totalClicks   = save.totalClicks   ?? ls.get("totalClicks");
+    state.prestigeCount = save.prestigeCount ?? ls.get("prestigeCount");
+    state.activeThemeId = save.beanTheme     ?? ls.str("beanTheme", "default");
+    state.achievements  = save.achievements  ?? ls.getJSON("beanAchievements", []);
 
-    for (const id in upgrades) {
-        upgrades[id].owned = state[`upg_${id}`] ?? 0;
+    // Support new nested format and old flat format
+    if (save.upgrades) {
+        for (const id in upgrades) upgrades[id].owned = save.upgrades[id] ?? 0;
+    } else {
+        for (const id in upgrades) upgrades[id].owned = save[`upg_${id}`] ?? 0;
     }
-    for (const themeId in worldUpgrades) {
-        for (const id in worldUpgrades[themeId]) {
-            worldUpgrades[themeId][id].owned = state[`wupg_${themeId}_${id}`] ?? 0;
+
+    if (save.worldUpgrades) {
+        for (const themeId in worldUpgrades) {
+            for (const id in worldUpgrades[themeId]) {
+                worldUpgrades[themeId][id].owned = save.worldUpgrades[themeId]?.[id] ?? 0;
+            }
+        }
+    } else {
+        for (const themeId in worldUpgrades) {
+            for (const id in worldUpgrades[themeId]) {
+                worldUpgrades[themeId][id].owned = save[`wupg_${themeId}_${id}`] ?? 0;
+            }
         }
     }
-    for (const id in prestigeUpgrades) {
-        prestigeUpgrades[id].level = state[`pshop_${id}`] ?? 0;
+
+    if (save.prestigeShop) {
+        for (const id in prestigeUpgrades) prestigeUpgrades[id].level = save.prestigeShop[id] ?? 0;
+    } else {
+        for (const id in prestigeUpgrades) prestigeUpgrades[id].level = save[`pshop_${id}`] ?? 0;
     }
 
-    // Sync to localStorage too
-    ls.set("beans", beanAmount);
-    ls.set("totalEarned", totalEarned);
-    ls.set("totalClicks", totalClicks);
-    ls.set("prestigeCount", prestigeCount);
+    persistCore();
 }
 
-// ── Init ──
+// ══════════════════════════════════════════════
+//  DEV RESET
+// ══════════════════════════════════════════════
+function devReset() { localStorage.clear(); location.reload(); }
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
 function Initialize() {
+    initAudioPool();
+
     onAuthReady(async (user) => {
         console.log('onAuthReady fired', user?.uid);
         if (!user) {
-            const overlay = document.getElementById('authOverlay');
-            if (overlay) overlay.classList.remove('hidden');
+            if (dom.authOverlay) dom.authOverlay.classList.remove('hidden');
             return;
         }
 
-        if (gameInitialized) return;
-        gameInitialized = true;
+        if (state.gameInitialized) return;
+        state.gameInitialized = true;
+        state.currentUser = user;
 
-        currentUser = user;
-        const overlay = document.getElementById('authOverlay');
-        if (overlay) overlay.classList.add('hidden');
- 
-        // Logged in — hide auth overlay, show game
-        currentUser = user;
-        document.getElementById('authOverlay').classList.add('hidden');
- 
-        // Show username in leaderboard panel
+        if (dom.authOverlay) dom.authOverlay.classList.add('hidden');
         showUsernameDisplay(user.displayName || user.email);
 
         await loadFromCloud(user.uid);
-        prestigeEffects = getPrestigeEffects();
- 
+        state.prestigeEffects = getPrestigeEffects();
+
         buildUpgradeCards();
         updateBeanDisplay();
         updateBPSDisplay();
@@ -928,22 +1031,30 @@ function Initialize() {
         renderAchievements();
         buildPrestigeShop();
         buildThemeSelector();
-        applyTheme(activeThemeId);
+        applyTheme(state.activeThemeId);
         scheduleEvent();
+
+        // BPS tick
+        setInterval(bpsTick, 1000);
+
+        // Cloud save every 30s
         setInterval(saveToCloud, 30000);
- 
+
         watchAnnouncement(msg => showBanner(msg));
         watchGlobalEvent(eventId => {
             const def = eventDefs.find(e => e.id === eventId);
             if (def) triggerEvent(def);
         });
- 
+
+        // Input handling
         if ('ontouchstart' in window) {
-            beanPic.addEventListener("touchstart", (e) => { e.preventDefault(); beanclicker(); }, { passive: false });
+            dom.beanPic.addEventListener("touchstart", (e) => { e.preventDefault(); beanclicker(); }, { passive: false });
         } else {
-            beanPic.addEventListener("click", beanclicker);
+            dom.beanPic.addEventListener("click", beanclicker);
         }
-        beanEl.addEventListener('animationend', () => beanEl.classList.remove('bean-clicked'));
+        dom.beanEl.addEventListener('animationend', () => dom.beanEl.classList.remove('bean-clicked'));
+
+        // Prevent zoom/context menu
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
         document.addEventListener('keydown', e => { if (e.ctrlKey && ['+','-','='].includes(e.key)) e.preventDefault(); });
@@ -954,14 +1065,15 @@ function Initialize() {
 
 async function handleLogout() {
     await logOut();
-    location.reload(); // reload shows auth screen again
+    location.reload();
 }
 
 // ── Expose globals ──
-window.handleLogout = handleLogout;
+window.handleLogout    = handleLogout;
 window.switchTab       = switchTab;
 window.loadLeaderboard = loadLeaderboard;
 window.devReset        = devReset;
 window.prestige        = prestige;
+window.saveUsername     = saveUsername;
 
 Initialize();
