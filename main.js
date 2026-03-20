@@ -416,17 +416,48 @@ function updateLevelDisplay() {
 
 function updateCardVisibility() {
     const level = getLevel();
+    let nextLockedShown = false;
+
     for (const id in upgrades) {
         const card = document.getElementById(id);
         if (!card) continue;
-        card.style.display = upgrades[id].unlockLevel <= level ? '' : 'none';
+        const u = upgrades[id];
+        const unlocked = u.unlockLevel <= level;
+
+        if (unlocked) {
+            card.style.display = '';
+            card.classList.remove('card-locked');
+        } else if (!nextLockedShown) {
+            // Show the next locked upgrade with overlay
+            card.style.display = '';
+            card.classList.add('card-locked');
+            nextLockedShown = true;
+        } else {
+            card.style.display = 'none';
+            card.classList.remove('card-locked');
+        }
     }
+
     const world = getWorldUpgrades();
     if (world) {
+        let nextWorldLockedShown = false;
         for (const id in world) {
             const card = document.getElementById(`world_${id}`);
             if (!card) continue;
-            card.style.display = world[id].unlockLevel <= level ? '' : 'none';
+            const u = world[id];
+            const unlocked = u.unlockLevel <= level;
+
+            if (unlocked) {
+                card.style.display = '';
+                card.classList.remove('card-locked');
+            } else if (!nextWorldLockedShown) {
+                card.style.display = '';
+                card.classList.add('card-locked');
+                nextWorldLockedShown = true;
+            } else {
+                card.style.display = 'none';
+                card.classList.remove('card-locked');
+            }
         }
     }
 }
@@ -522,6 +553,10 @@ function buildUpgradeList(containerId, upgradeSet, isWorld) {
                 <div class="tooltip-stat">${statType}</div>
                 <div class="tooltip-desc">${u.desc}</div>
                 <div class="tooltip-unlock">Unlocks at level ${u.unlockLevel}</div>
+            </div>
+            <div class="card-lock-overlay">
+                <span class="lock-icon">🔒</span>
+                <span class="lock-text">Level ${u.unlockLevel}</span>
             </div>
         `;
         card.addEventListener('click', () => buyUpgrade(id, isWorld ? upgradeSet : null));

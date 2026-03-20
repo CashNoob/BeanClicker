@@ -122,3 +122,49 @@
     position: relative;
     z-index: 1;
 }
+
+/* ── Lock overlay for next upgrade ── */
+.card-lock-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm, 8px);
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.card-locked .card-lock-overlay {
+    display: flex;
+}
+
+.card-locked {
+    cursor: not-allowed;
+    pointer-events: none;
+    border-style: dashed;
+    opacity: 0.85;
+}
+
+/* Hide tooltip on locked cards */
+.card-locked .card-tooltip {
+    display: none;
+}
+
+.lock-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.lock-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}

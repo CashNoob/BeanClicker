@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bean-clicker-v1.1';
+const CACHE_NAME = 'bean-clicker-v1.2';
 
 const ASSETS = [
     './',
