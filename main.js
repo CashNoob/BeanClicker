@@ -687,8 +687,8 @@ function detectAutoclicker() {
     const stdDev   = Math.sqrt(variance);
 
     if (stdDev < 5 && mean < 50) return true;
-    if (stdDev < 3 && mean < 150) return true;*/
-    return false;
+    if (stdDev < 3 && mean < 150) return true;
+    return false;*/
 }
 
 function punishAutoclicker() {
