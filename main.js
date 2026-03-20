@@ -542,10 +542,10 @@ function detectAutoclicker() {
     const variance = clickIntervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / clickIntervals.length;
     const stdDev   = Math.sqrt(variance);
 
-    // Only flag near-perfect consistency at inhuman speeds
-    // stdDev < 3 = within 3ms of perfect — no human achieves this
-    // mean < 33 = faster than 30 clicks/sec — jitter/butterfly max is around 15-20 cps
-    if (stdDev < 3 && mean < 33) return true;
+    // Near-zero variance at any speed under 50ms (20 CPS) — no human is this consistent
+    if (stdDev < 5 && mean < 50) return true;
+    // Slightly looser check for slower autoclickers (50-150ms range)
+    if (stdDev < 3 && mean < 150) return true;
 
     return false;
 }
