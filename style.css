@@ -835,6 +835,91 @@ body {
     flex-shrink: 0;
 }
 
+/* ── SPACE THEME OVERRIDES ── */
+body.theme-space .bg-beans span {
+    filter: hue-rotate(220deg) saturate(1.5) brightness(0.7);
+}
+
+body.theme-space .mainbox {
+    background: linear-gradient(160deg, #030712 0%, #0a1035 40%, #111d55 100%);
+}
+
+body.theme-space .mainbox::before {
+    background-image: radial-gradient(circle, rgba(124,77,255,0.06) 1px, transparent 1px);
+}
+
+body.theme-space .bean-count {
+    color: #b39ddb;
+    text-shadow: 0 0 20px rgba(124,77,255,0.4), 3px 3px 0 rgba(0,0,0,0.3);
+}
+
+body.theme-space .bean-label {
+    color: #9fa8da;
+}
+
+body.theme-space .per-second {
+    color: #9fa8da;
+    background: rgba(13,27,75,0.6);
+    backdrop-filter: blur(4px);
+}
+
+body.theme-space .level-display {
+    color: #b39ddb;
+    background: rgba(13,27,75,0.7);
+    backdrop-filter: blur(4px);
+}
+
+body.theme-space .ticker-wrap {
+    color: #b39ddb;
+    background: rgba(13,27,75,0.7);
+    backdrop-filter: blur(4px);
+}
+
+body.theme-space .level-bar-fill {
+    background: linear-gradient(90deg, #7c4dff, #b39ddb);
+}
+
+body.theme-space .float-text {
+    color: #b39ddb;
+    text-shadow: 0 0 12px rgba(124,77,255,0.6), 2px 2px 0 rgba(255,255,255,0.2);
+}
+
+body.theme-space .click-hint {
+    color: #7c4dff;
+}
+
+body.theme-space .prestige-btn {
+    background: linear-gradient(135deg, #7c4dff, #5c35cc);
+    box-shadow: 0 4px 0 #3a1d8e;
+    color: #fff;
+}
+
+body.theme-space .prestige-btn:hover {
+    background: linear-gradient(135deg, #9c6eff, #7c4dff);
+}
+
+body.theme-space .upgrade-card:hover:not(.locked):not(.insufficient-funds) {
+    background: #1a2560;
+    border-color: #7c4dff;
+    box-shadow: 0 0 8px rgba(124,77,255,0.3);
+}
+
+body.theme-space .tab-btn.active {
+    color: #b39ddb;
+    border-bottom-color: #b39ddb;
+}
+
+body.theme-space .sidebar-tab-btn.active {
+    color: #b39ddb;
+    border-bottom-color: #b39ddb;
+}
+
+/* Bean glow on hover for space */
+body.theme-space .bean-wrapper:hover .bean {
+    filter: var(--bean-filter) drop-shadow(0 0 25px rgba(124,77,255,0.5));
+}
+
+/* ── LAVA THEME OVERRIDES ── */
 body.theme-lava {
     --sidebar-bg:  #4a0e00;
     --sidebar2-bg: #2d0800;
@@ -859,74 +944,87 @@ body.theme-lava .bg-beans span {
  
 /* Recolor the level bar fill */
 body.theme-lava .level-bar-fill {
-    background: #ff5722;
+    background: linear-gradient(90deg, #ff5722, #ff9800);
 }
  
 /* Recolor the prestige button */
 body.theme-lava .prestige-btn {
-    background: #ff5722;
-    box-shadow: 0 4px 0 #bf360c;
+    background: linear-gradient(135deg, #ff5722, #e64a19);
+    box-shadow: 0 4px 0 #bf360c, 0 0 12px rgba(255,87,34,0.3);
     color: #fff;
 }
  
 body.theme-lava .prestige-btn:hover {
-    background: #ff7043;
-}
- 
-/* Recolor upgrade card hover */
-body.theme-lava .upgrade-card:hover:not(.locked) {
-    background: #6a1f00;
-    border-color: #ff5722;
-}
- 
-/* Recolor tab active state */
-body.theme-lava .tab-btn.active {
-    color: #ffab91;
-    border-bottom-color: #ffab91;
-}
- 
-body.theme-lava .sidebar-tab-btn.active {
-    color: #ffab91;
-    border-bottom-color: #ffab91;
+    background: linear-gradient(135deg, #ff7043, #ff5722);
 }
  
 /* Recolor mainbox gradient */
 body.theme-lava .mainbox {
-    background: linear-gradient(160deg, #3e0a00 0%, #6a1200 40%, #8b1a00 100%);
+    background: linear-gradient(160deg, #1a0400 0%, #3e0a00 30%, #6a1200 60%, #8b1a00 100%);
 }
  
 body.theme-lava .mainbox::before {
     background-image: radial-gradient(circle, rgba(255,87,34,0.1) 1px, transparent 1px);
 }
+
+/* Lava tab recolors */
+body.theme-lava .tab-btn.active {
+    color: #ffab91;
+    border-bottom-color: #ffab91;
+}
+
+body.theme-lava .sidebar-tab-btn.active {
+    color: #ffab91;
+    border-bottom-color: #ffab91;
+}
  
 /* Bean count color */
 body.theme-lava .bean-count {
     color: #ffab91;
-    text-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+    text-shadow: 0 0 20px rgba(255,87,34,0.5), 3px 3px 0 rgba(0,0,0,0.3);
 }
- 
+
 body.theme-lava .bean-label {
     color: #ff8a65;
 }
- 
+
 body.theme-lava .per-second {
     color: #ff8a65;
+    background: rgba(74,14,0,0.6);
+    backdrop-filter: blur(4px);
 }
- 
+
 /* Level display */
 body.theme-lava .level-display {
     color: #bf360c;
     background: rgba(255, 235, 230, 0.7);
 }
- 
+
 body.theme-lava .ticker-wrap {
     color: #bf360c;
     background: rgba(255, 235, 230, 0.7);
 }
- 
+
 /* Float text */
 body.theme-lava .float-text {
     color: #ff5722;
+    text-shadow: 0 0 12px rgba(255,87,34,0.6), 2px 2px 0 rgba(255,200,150,0.3);
+}
+
+body.theme-lava .click-hint {
+    color: #ff5722;
+}
+
+/* Bean glow on hover for lava */
+body.theme-lava .bean-wrapper:hover .bean {
+    filter: var(--bean-filter) drop-shadow(0 0 25px rgba(255,87,34,0.6));
+}
+
+/* Lava upgrade card hover glow */
+body.theme-lava .upgrade-card:hover:not(.locked):not(.insufficient-funds) {
+    background: #6a1f00;
+    border-color: #ff5722;
+    box-shadow: 0 0 8px rgba(255,87,34,0.3);
 }
 
 /* ── MOBILE OVERHAUL ── */

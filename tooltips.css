@@ -68,23 +68,19 @@
     border-top-color: var(--green-dark);
 }
 
-/* Special case: if tooltip would go above viewport, push it down */
-.upgrade-card.top-tooltip .card-tooltip {
-    z-index: 9999;
-    top: unset !important;
-    bottom: auto !important;
-    margin-top: 0 !important;
-    margin-bottom: 8px !important;
-    /* If tooltip would go off the top, push it down */
-    position: fixed;
-    left: unset;
-    right: unset;
-    /* Calculate left based on card position */
-    /* Will be set dynamically in JS for best accuracy */
-    max-height: calc(100vh - 70px); /* adjust 70px if your top bar is taller */
-    top: 60px; /* push below the top bar */
+/* Hovered card floats above siblings so tooltip isn't clipped */
+.upgrade-card:hover {
+    z-index: 100;
 }
 
+/* Top cards: tooltip drops BELOW instead of above */
+.upgrade-card.top-tooltip .card-tooltip {
+    bottom: auto;
+    top: calc(100% + 8px);
+    z-index: 300;
+}
+
+/* Arrow points UP from the tooltip toward the card */
 .upgrade-card.top-tooltip .card-tooltip::before {
     top: auto;
     bottom: 100%;

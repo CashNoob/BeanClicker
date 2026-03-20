@@ -1,4 +1,4 @@
-    :root,
+:root,
     body.theme-default {
         --bg:           #1a1a2e;
         --bg2:          #16213e;
@@ -13,8 +13,8 @@
     }
 
     body.theme-space {
-        --bg:           #050918;
-        --bg2:          #090d2e;
+        --bg:           #030712;
+        --bg2:          #070e24;
         --surface:      #0d1b4b;
         --accent:       #7c4dff;
         --accent2:      #b39ddb;
@@ -24,31 +24,75 @@
         --glow:         rgba(124, 77, 255, 0.5);
         --bean-filter:  hue-rotate(200deg) saturate(1.4) brightness(0.9);
 
+        background-color: #030712;
         background-image:
-            radial-gradient(ellipse at 20% 30%, rgba(124,77,255,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse at 80% 70%, rgba(63,81,181,0.12) 0%, transparent 60%);
+            /* Nebula clouds */
+            radial-gradient(ellipse at 15% 25%, rgba(124,77,255,0.12) 0%, transparent 50%),
+            radial-gradient(ellipse at 75% 65%, rgba(63,81,181,0.15) 0%, transparent 45%),
+            radial-gradient(ellipse at 50% 10%, rgba(156,39,176,0.08) 0%, transparent 55%),
+            radial-gradient(ellipse at 85% 20%, rgba(33,150,243,0.06) 0%, transparent 40%);
     }
 
+    /* Dense twinkling starfield — layer 1 (small bright stars) */
     body.theme-space::before {
         content: '';
         position: fixed;
         inset: 0;
         background-image:
-            radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
-            radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
-            radial-gradient(1px 1px at 50% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
-            radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
-            radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
-            radial-gradient(1px 1px at 40% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
-            radial-gradient(1px 1px at 92% 55%, rgba(255,255,255,0.5) 0%, transparent 100%);
+            radial-gradient(1px 1px at 3% 8%,   rgba(255,255,255,0.8) 0%, transparent 100%),
+            radial-gradient(1px 1px at 10% 15%,  rgba(255,255,255,0.7) 0%, transparent 100%),
+            radial-gradient(1px 1px at 17% 52%,  rgba(200,200,255,0.5) 0%, transparent 100%),
+            radial-gradient(1px 1px at 25% 60%,  rgba(255,255,255,0.6) 0%, transparent 100%),
+            radial-gradient(1px 1px at 32% 28%,  rgba(255,255,255,0.4) 0%, transparent 100%),
+            radial-gradient(1px 1px at 40% 90%,  rgba(200,200,255,0.6) 0%, transparent 100%),
+            radial-gradient(1px 1px at 48% 18%,  rgba(255,255,255,0.7) 0%, transparent 100%),
+            radial-gradient(1px 1px at 55% 72%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+            radial-gradient(1px 1px at 62% 42%,  rgba(200,200,255,0.4) 0%, transparent 100%),
+            radial-gradient(1px 1px at 70% 80%,  rgba(255,255,255,0.6) 0%, transparent 100%),
+            radial-gradient(1px 1px at 78% 12%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+            radial-gradient(1px 1px at 85% 35%,  rgba(200,200,255,0.7) 0%, transparent 100%),
+            radial-gradient(1px 1px at 92% 55%,  rgba(255,255,255,0.6) 0%, transparent 100%),
+            radial-gradient(1px 1px at 97% 88%,  rgba(255,255,255,0.4) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 7% 45%, rgba(180,180,255,0.9) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 36% 70%, rgba(255,255,220,0.8) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 65% 22%, rgba(180,200,255,0.9) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 88% 68%, rgba(255,255,240,0.7) 0%, transparent 100%);
         pointer-events: none;
         z-index: 0;
+        animation: space-twinkle 4s ease-in-out infinite alternate;
+    }
+
+    /* Star twinkle animation */
+    @keyframes space-twinkle {
+        0%   { opacity: 0.8; }
+        50%  { opacity: 1;   }
+        100% { opacity: 0.85; }
+    }
+
+    /* Slow-drifting nebula overlay */
+    body.theme-space::after {
+        content: '';
+        position: fixed;
+        inset: -50%;
+        width: 200%;
+        height: 200%;
+        background-image:
+            radial-gradient(ellipse at 30% 40%, rgba(124,77,255,0.06) 0%, transparent 50%),
+            radial-gradient(ellipse at 70% 60%, rgba(63,81,181,0.08) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+        animation: nebula-drift 60s linear infinite;
+    }
+
+    @keyframes nebula-drift {
+        0%   { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(-10%, -5%) rotate(15deg); }
     }
 
     body.theme-lava {
-        --bg:           #1a0500;
-        --bg2:          #2d0800;
-        --surface:      #4a0e00;
+        --bg:           #0f0200;
+        --bg2:          #1a0500;
+        --surface:      #3a0a00;
         --accent:       #ff5722;
         --accent2:      #ffab91;
         --text:         #fbe9e7;
@@ -57,15 +101,61 @@
         --glow:         rgba(255, 87, 34, 0.6);
         --bean-filter:  hue-rotate(120deg) saturate(2) brightness(0.85);
 
+        background-color: #0f0200;
         background-image:
-            radial-gradient(ellipse at 50% 100%, rgba(255,87,34,0.15) 0%, transparent 60%),
-            radial-gradient(ellipse at 20% 80%, rgba(255,152,0,0.08) 0%, transparent 50%);
-        animation: lava-pulse 4s ease-in-out infinite alternate;
+            /* Deep magma glow from below */
+            radial-gradient(ellipse at 50% 110%, rgba(255,87,34,0.25) 0%, transparent 50%),
+            radial-gradient(ellipse at 20% 95%, rgba(255,152,0,0.15) 0%, transparent 40%),
+            radial-gradient(ellipse at 80% 100%, rgba(255,61,0,0.18) 0%, transparent 45%),
+            /* Overhead heat haze */
+            radial-gradient(ellipse at 30% 20%, rgba(255,87,34,0.04) 0%, transparent 40%),
+            radial-gradient(ellipse at 70% 15%, rgba(255,152,0,0.03) 0%, transparent 35%);
     }
 
-    @keyframes lava-pulse {
-        from { background-position: 0% 0%; }
-        to   { background-position: 0% 5%; }
+    /* Lava cracks / veins effect */
+    body.theme-lava::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image:
+            /* Glowing cracks pattern */
+            radial-gradient(2px 40px at 15% 30%, rgba(255,100,0,0.15) 0%, transparent 100%),
+            radial-gradient(2px 35px at 35% 55%, rgba(255,60,0,0.12) 0%, transparent 100%),
+            radial-gradient(2px 45px at 55% 25%, rgba(255,140,0,0.10) 0%, transparent 100%),
+            radial-gradient(2px 30px at 75% 70%, rgba(255,80,0,0.14) 0%, transparent 100%),
+            radial-gradient(2px 50px at 90% 40%, rgba(255,120,0,0.11) 0%, transparent 100%),
+            radial-gradient(40px 2px at 20% 60%, rgba(255,80,0,0.12) 0%, transparent 100%),
+            radial-gradient(35px 2px at 45% 80%, rgba(255,100,0,0.10) 0%, transparent 100%),
+            radial-gradient(45px 2px at 70% 35%, rgba(255,60,0,0.13) 0%, transparent 100%),
+            radial-gradient(30px 2px at 85% 75%, rgba(255,140,0,0.09) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 0;
+        animation: lava-cracks-pulse 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes lava-cracks-pulse {
+        0%   { opacity: 0.5; }
+        50%  { opacity: 1;   }
+        100% { opacity: 0.6; }
+    }
+
+    /* Rising heat / magma glow that shifts */
+    body.theme-lava::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+            radial-gradient(ellipse at 30% 90%, rgba(255,87,34,0.2) 0%, transparent 50%),
+            radial-gradient(ellipse at 70% 85%, rgba(255,152,0,0.15) 0%, transparent 45%);
+        pointer-events: none;
+        z-index: 0;
+        animation: lava-flow 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes lava-flow {
+        0%   { opacity: 0.6; transform: translateY(0); }
+        50%  { opacity: 1;   transform: translateY(-8px); }
+        100% { opacity: 0.7; transform: translateY(2px); }
     }
 
     body.theme-ice {
