@@ -224,9 +224,9 @@ const achievementDefs = [
 // ══════════════════════════════════════════════
 const eventDefs = [
     {
-        id: 'rain', title: '🌧️ Bean Rain!', desc: 'BPS x3 for 20 seconds!',
-        duration: 20000, color: '#4fc3f7',
-        onStart: () => { state.eventMultiplier = 3; },
+        id: 'rain', title: '🌧️ Bean Rain!', desc: 'BPS x5 for 15 seconds!',
+        duration: 15000, color: '#4fc3f7',
+        onStart: () => { state.eventMultiplier = 5; },
         onEnd:   () => { state.eventMultiplier = 1; },
     },
     {
@@ -681,13 +681,13 @@ let autoclickWarnings = 0;
 let clickFrozen      = false;
 
 function detectAutoclicker() {
-    if (clickIntervals.length < 10) return false;
+    /*if (clickIntervals.length < 10) return false;
     const mean     = clickIntervals.reduce((a, b) => a + b, 0) / clickIntervals.length;
     const variance = clickIntervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / clickIntervals.length;
     const stdDev   = Math.sqrt(variance);
 
     if (stdDev < 5 && mean < 50) return true;
-    if (stdDev < 3 && mean < 150) return true;
+    if (stdDev < 3 && mean < 150) return true;*/
     return false;
 }
 
