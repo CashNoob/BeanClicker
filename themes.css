@@ -231,11 +231,177 @@
         transition: filter 0.6s ease;
     }
 
+    /* ── PP Display ── */
+    .prestige-body hr {
+        display: none;
+    }
+
+    #ppDisplay {
+        margin-bottom: 14px;
+    }
+
+    .pp-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .pp-amount {
+        font-family: 'Fredoka One', cursive;
+        font-size: 1.3rem;
+        color: var(--accent);
+        text-shadow: 0 0 10px var(--glow);
+    }
+
+    .pp-label {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .pp-sub {
+        font-size: 0.62rem;
+        color: var(--text-muted);
+        opacity: 0.6;
+        margin-top: 2px;
+    }
+
+    /* ── Prestige Shop List ── */
+    #prestigeShopList {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    /* ── Prestige Shop Card ── */
+    .pshop-card {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+
+    .pshop-card:active:not(.pshop-maxed):not(.pshop-broke) {
+        transform: scale(0.97);
+    }
+
+    .pshop-card.pshop-affordable {
+        border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+    }
+
+    .pshop-card.pshop-affordable:hover {
+        background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--glow);
+    }
+
+    .pshop-card.pshop-maxed {
+        opacity: 0.55;
+        cursor: default;
+        border-color: color-mix(in srgb, var(--accent2) 30%, var(--border));
+    }
+
+    .pshop-card.pshop-broke {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* Card layout */
+    .pshop-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .pshop-emoji {
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        width: 28px;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    .pshop-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+    }
+
+    .pshop-name {
+        font-weight: 800;
+        font-size: 0.8rem;
+        color: var(--text);
+        letter-spacing: 0.3px;
+    }
+
+    .pshop-desc {
+        font-size: 0.62rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+        opacity: 0.8;
+    }
+
+    /* Level pips */
+    .pshop-pips {
+        display: flex;
+        gap: 3px;
+        margin: 6px 0 6px 0;
+        padding-left: 38px;
+    }
+
+    .pshop-pip {
+        width: 100%;
+        max-width: 28px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255,255,255,0.08);
+        transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .pshop-pip.pip-filled {
+        background: var(--accent);
+        box-shadow: 0 0 4px var(--glow);
+    }
+
+    /* Bottom row */
+    .pshop-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 38px;
+    }
+
+    .pshop-effect {
+        font-size: 0.62rem;
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    .pshop-cost {
+        font-family: 'Fredoka One', cursive;
+        font-size: 0.68rem;
+        color: var(--accent2);
+        white-space: nowrap;
+    }
+
+    .pshop-maxed .pshop-cost {
+        color: var(--accent);
+        opacity: 0.7;
+    }
+
+    /* ── Theme Selector ── */
     #themeSelector {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-top: 12px;
+        gap: 6px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px dashed rgba(255,255,255,0.08);
     }
 
     .theme-btn {
@@ -243,13 +409,17 @@
         align-items: center;
         gap: 12px;
         padding: 10px 14px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: 1px solid var(--border);
         background: var(--surface);
         color: var(--text);
         cursor: pointer;
-        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.1s;
         text-align: left;
+    }
+
+    .theme-btn:active:not(.theme-locked) {
+        transform: scale(0.97);
     }
 
     .theme-btn:hover:not(.theme-locked) {
@@ -259,75 +429,34 @@
 
     .theme-btn.theme-active {
         border-color: var(--accent);
-        box-shadow: 0 0 8px var(--glow);
+        box-shadow: 0 0 10px var(--glow);
         background: color-mix(in srgb, var(--accent) 20%, var(--surface));
     }
 
     .theme-btn.theme-locked {
-        opacity: 0.45;
+        opacity: 0.35;
         cursor: not-allowed;
     }
 
     .theme-emoji { font-size: 1.4rem; flex-shrink: 0; }
-    .theme-name  { font-weight: 600; font-size: 0.95rem; }
-    .theme-desc  { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    .theme-name {
+        font-weight: 800;
+        font-size: 0.82rem;
+        letter-spacing: 0.3px;
+    }
+
+    .theme-desc {
+        font-size: 0.62rem;
+        color: var(--text-muted);
+        margin-top: 1px;
+        opacity: 0.8;
+    }
 
     .theme-btn .theme-name,
     .theme-btn .theme-desc {
         display: block;
     }
-
-    #ppDisplay {
-        font-size: 0.9rem;
-        color: var(--accent2);
-        margin-bottom: 12px;
-        letter-spacing: 0.03em;
-    }
-
-    #prestigeShopList {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .pshop-card {
-        padding: 12px 14px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        cursor: pointer;
-        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .pshop-card:hover:not(.pshop-maxed):not(.pshop-broke) {
-        background: color-mix(in srgb, var(--accent) 15%, var(--surface));
-        border-color: var(--accent);
-        box-shadow: 0 0 8px var(--glow);
-    }
-
-    .pshop-card.pshop-maxed {
-        opacity: 0.6;
-        cursor: default;
-        border-color: var(--accent2);
-    }
-
-    .pshop-card.pshop-broke {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .pshop-main {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4px;
-    }
-
-    .pshop-name  { font-weight: 600; font-size: 0.95rem; color: var(--text); }
-    .pshop-level { font-size: 0.8rem; color: var(--accent2); }
-    .pshop-desc  { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
-    .pshop-effect{ font-size: 0.78rem; color: var(--accent); }
-    .pshop-cost  { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; font-style: italic; }
 
     body.theme-space {
     --sidebar-bg:  #0d1b4b;

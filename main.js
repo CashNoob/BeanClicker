@@ -148,15 +148,15 @@ function calcBPS() {
     for (const id in upgrades) total += upgrades[id].bps * upgrades[id].owned;
     const world = getWorldUpgrades();
     if (world) for (const id in world) total += world[id].bps * world[id].owned;
-    return total;
+    return total * state.prestigeEffects.bpsMulti * state.prestigeEffects.globalMulti;
 }
 
 function calcBPC() {
-    let total = 1 + state.prestigeEffects.flatBPC;
+    let total = 1;
     for (const id in upgrades) total += upgrades[id].bpc * upgrades[id].owned;
     const world = getWorldUpgrades();
     if (world) for (const id in world) total += world[id].bpc * world[id].owned;
-    return total;
+    return total * state.prestigeEffects.clickMulti * state.prestigeEffects.globalMulti;
 }
 
 // ══════════════════════════════════════════════
@@ -175,7 +175,7 @@ function fmt(n) {
 }
 
 function getUpgradeCost(u) {
-    return Math.floor(u.cost * Math.pow(1.10, u.owned));
+    return Math.floor(u.cost * Math.pow(1.10, u.owned) * state.prestigeEffects.costReduction);
 }
 
 // ══════════════════════════════════════════════
@@ -316,7 +316,16 @@ function buildPrestigeShop() {
     dom.prestigeShopList.innerHTML = '';
 
     const pp = getAvailablePP(state.prestigeCount);
-    if (dom.ppDisplay) dom.ppDisplay.textContent = `✦ ${pp} Prestige Point${pp !== 1 ? 's' : ''} available`;
+    const totalPP = computePP(state.prestigeCount);
+    if (dom.ppDisplay) {
+        dom.ppDisplay.innerHTML = `
+            <div class="pp-header">
+                <span class="pp-amount">✦ ${pp}</span>
+                <span class="pp-label">Prestige Points</span>
+            </div>
+            <div class="pp-sub">Total earned: ${totalPP} PP from ${state.prestigeCount} prestige${state.prestigeCount !== 1 ? 's' : ''}</div>
+        `;
+    }
 
     for (const id in prestigeUpgrades) {
         const u         = prestigeUpgrades[id];
@@ -324,16 +333,27 @@ function buildPrestigeShop() {
         const maxed     = u.level >= u.maxLevel;
         const canAfford = pp >= cost;
 
+        // Build level pips
+        let pips = '';
+        for (let i = 0; i < u.maxLevel; i++) {
+            pips += `<span class="pshop-pip${i < u.level ? ' pip-filled' : ''}"></span>`;
+        }
+
         const card = document.createElement('div');
-        card.className = 'pshop-card' + (maxed ? ' pshop-maxed' : '') + (!canAfford && !maxed ? ' pshop-broke' : '');
+        card.className = 'pshop-card' + (maxed ? ' pshop-maxed' : '') + (canAfford && !maxed ? ' pshop-affordable' : '') + (!canAfford && !maxed ? ' pshop-broke' : '');
         card.innerHTML = `
-            <div class="pshop-main">
-                <span class="pshop-name">${u.emoji} ${u.name}</span>
-                <span class="pshop-level">${u.level}/${u.maxLevel}</span>
+            <div class="pshop-top">
+                <span class="pshop-emoji">${u.emoji}</span>
+                <div class="pshop-info">
+                    <span class="pshop-name">${u.name}</span>
+                    <span class="pshop-desc">${u.desc}</span>
+                </div>
             </div>
-            <div class="pshop-desc">${u.desc}</div>
-            <div class="pshop-effect">${u.effectDesc(u.level)}</div>
-            <div class="pshop-cost">${maxed ? '✦ MAXED' : `Cost: ${cost} PP`}</div>
+            <div class="pshop-pips">${pips}</div>
+            <div class="pshop-bottom">
+                <span class="pshop-effect">${u.effectDesc(u.level)}</span>
+                <span class="pshop-cost">${maxed ? '✦ MAX' : `${cost} PP`}</span>
+            </div>
         `;
         if (!maxed) card.addEventListener('click', () => buyPrestigeUpgrade(id));
         dom.prestigeShopList.appendChild(card);
@@ -673,7 +693,9 @@ function beanclicker() {
     }
 
     const frenzy     = state.activeEvent && state.activeEvent.id === 'frenzy' ? state.eventMultiplier : 1;
-    const clicktotal = Math.floor(calcBPC() * getPrestigeMulti() * frenzy);
+    const isCrit     = state.prestigeEffects.critChance > 0 && Math.random() < state.prestigeEffects.critChance;
+    const critMulti  = isCrit ? 10 : 1;
+    const clicktotal = Math.floor(calcBPC() * getPrestigeMulti() * frenzy * critMulti);
 
     state.beans     += clicktotal;
     state.totalEarned += clicktotal;
@@ -683,7 +705,7 @@ function beanclicker() {
     persistCore();
 
     playClickSound();
-    spawnFloatText(`+${fmt(clicktotal)}`);
+    spawnFloatText(isCrit ? `💥 +${fmt(clicktotal)}` : `+${fmt(clicktotal)}`);
 
     dom.beanEl.classList.remove('bean-clicked');
     void dom.beanEl.offsetWidth;
@@ -792,7 +814,13 @@ function prestige() {
         for (const id in upgrades) keptOwned[id] = Math.min(upgrades[id].owned, keepCount);
     }
 
-    state.beans       = state.prestigeEffects.startingBeans;
+    // Head Start: scales with prestige count and level
+    // Tier 1: 1K * prestiges, Tier 2: 5K * prestiges, etc.
+    const headStartTiers = [0, 1000, 5000, 25000, 100000, 500000];
+    const hsLevel = state.prestigeEffects.headStartLevel;
+    const startBeans = hsLevel > 0 ? (headStartTiers[hsLevel] || 0) * state.prestigeCount : 0;
+
+    state.beans       = startBeans;
     state.totalEarned = 0;
     state.totalClicks = 0;
 
