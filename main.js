@@ -681,14 +681,14 @@ let autoclickWarnings = 0;
 let clickFrozen      = false;
 
 function detectAutoclicker() {
-    /*if (clickIntervals.length < 10) return false;
+    if (clickIntervals.length < 10) return false;
     const mean     = clickIntervals.reduce((a, b) => a + b, 0) / clickIntervals.length;
     const variance = clickIntervals.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / clickIntervals.length;
     const stdDev   = Math.sqrt(variance);
 
     if (stdDev < 5 && mean < 50) return true;
     if (stdDev < 3 && mean < 150) return true;
-    return false;*/
+    return false;
 }
 
 function punishAutoclicker() {
