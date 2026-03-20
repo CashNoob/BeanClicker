@@ -9,7 +9,7 @@ import { submitScore, fetchLeaderboard, watchAnnouncement, watchGlobalEvent, rep
 
 // ── Storage helpers ──
 const ls = {
-    get:     (k, fallback = 0) => { const v = localStorage.getItem(k); return v !== null ? Number(v) : fallback; },
+    get:     (k, fallback = 0) => { const v = localStorage.getItem(k); if (v === null) return fallback; const n = Number(v); return isNaN(n) ? fallback : n; },
     set:     (k, v) => localStorage.setItem(k, v),
     str:     (k, fallback = '') => localStorage.getItem(k) || fallback,
     getJSON: (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) || fallback; } catch { return fallback; } },
@@ -49,6 +49,12 @@ function getWorldUpgrades() {
 
 // ── Persist core state to localStorage ──
 function persistCore() {
+    // Never persist NaN — sanitize before writing
+    if (isNaN(state.beans))        state.beans = 0;
+    if (isNaN(state.totalEarned))  state.totalEarned = 0;
+    if (isNaN(state.totalClicks))  state.totalClicks = 0;
+    if (isNaN(state.prestigeCount)) state.prestigeCount = 0;
+
     ls.set("beans",         state.beans);
     ls.set("totalEarned",   state.totalEarned);
     ls.set("totalClicks",   state.totalClicks);
