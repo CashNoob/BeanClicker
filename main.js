@@ -145,18 +145,20 @@ function getNextThreshold() {
 // ══════════════════════════════════════════════
 function calcBPS() {
     let total = 0;
-    for (const id in upgrades) total += upgrades[id].bps * upgrades[id].owned;
+    for (const id in upgrades) total += upgrades[id].bps * (upgrades[id].owned || 0);
     const world = getWorldUpgrades();
-    if (world) for (const id in world) total += world[id].bps * world[id].owned;
-    return total * state.prestigeEffects.bpsMulti * state.prestigeEffects.globalMulti;
+    if (world) for (const id in world) total += world[id].bps * (world[id].owned || 0);
+    const result = total * (state.prestigeEffects.bpsMulti || 1) * (state.prestigeEffects.globalMulti || 1);
+    return isNaN(result) ? 0 : result;
 }
 
 function calcBPC() {
     let total = 1;
-    for (const id in upgrades) total += upgrades[id].bpc * upgrades[id].owned;
+    for (const id in upgrades) total += upgrades[id].bpc * (upgrades[id].owned || 0);
     const world = getWorldUpgrades();
-    if (world) for (const id in world) total += world[id].bpc * world[id].owned;
-    return total * state.prestigeEffects.clickMulti * state.prestigeEffects.globalMulti;
+    if (world) for (const id in world) total += world[id].bpc * (world[id].owned || 0);
+    const result = total * (state.prestigeEffects.clickMulti || 1) * (state.prestigeEffects.globalMulti || 1);
+    return isNaN(result) ? 1 : result;
 }
 
 // ══════════════════════════════════════════════
@@ -175,7 +177,8 @@ function fmt(n) {
 }
 
 function getUpgradeCost(u) {
-    return Math.floor(u.cost * Math.pow(1.10, u.owned) * state.prestigeEffects.costReduction);
+    const cost = Math.floor(u.cost * Math.pow(1.10, u.owned || 0) * (state.prestigeEffects.costReduction || 1));
+    return isNaN(cost) ? u.cost : cost;
 }
 
 // ══════════════════════════════════════════════
@@ -984,38 +987,46 @@ async function loadFromCloud(userId) {
     const save = await loadGameState(userId);
     if (!save) return; // no cloud save
 
-    state.beans         = save.beans         ?? ls.get("beans");
-    state.totalEarned   = save.totalEarned   ?? ls.get("totalEarned");
-    state.totalClicks   = save.totalClicks   ?? ls.get("totalClicks");
-    state.prestigeCount = save.prestigeCount ?? ls.get("prestigeCount");
-    state.activeThemeId = save.beanTheme     ?? ls.str("beanTheme", "default");
-    state.achievements  = save.achievements  ?? ls.getJSON("beanAchievements", []);
+    // Safe number loader — never returns NaN
+    const safeNum = (val, fallback = 0) => {
+        const n = Number(val);
+        return isNaN(n) ? fallback : n;
+    };
+
+    state.beans         = safeNum(save.beans,         ls.get("beans"));
+    state.totalEarned   = safeNum(save.totalEarned,   ls.get("totalEarned"));
+    state.totalClicks   = safeNum(save.totalClicks,   ls.get("totalClicks"));
+    state.prestigeCount = safeNum(save.prestigeCount, ls.get("prestigeCount"));
+    state.activeThemeId = save.beanTheme || ls.str("beanTheme", "default");
+    state.achievements  = Array.isArray(save.achievements) ? save.achievements : ls.getJSON("beanAchievements", []);
 
     // Support new nested format and old flat format
     if (save.upgrades) {
-        for (const id in upgrades) upgrades[id].owned = save.upgrades[id] ?? 0;
+        for (const id in upgrades) upgrades[id].owned = safeNum(save.upgrades[id]);
     } else {
-        for (const id in upgrades) upgrades[id].owned = save[`upg_${id}`] ?? 0;
+        for (const id in upgrades) upgrades[id].owned = safeNum(save[`upg_${id}`]);
     }
 
     if (save.worldUpgrades) {
         for (const themeId in worldUpgrades) {
             for (const id in worldUpgrades[themeId]) {
-                worldUpgrades[themeId][id].owned = save.worldUpgrades[themeId]?.[id] ?? 0;
+                worldUpgrades[themeId][id].owned = safeNum(save.worldUpgrades[themeId]?.[id]);
             }
         }
     } else {
         for (const themeId in worldUpgrades) {
             for (const id in worldUpgrades[themeId]) {
-                worldUpgrades[themeId][id].owned = save[`wupg_${themeId}_${id}`] ?? 0;
+                worldUpgrades[themeId][id].owned = safeNum(save[`wupg_${themeId}_${id}`]);
             }
         }
     }
 
+    // Prestige shop — old upgrade IDs that don't exist anymore just get ignored
     if (save.prestigeShop) {
-        for (const id in prestigeUpgrades) prestigeUpgrades[id].level = save.prestigeShop[id] ?? 0;
+        for (const id in prestigeUpgrades) prestigeUpgrades[id].level = safeNum(save.prestigeShop[id]);
     } else {
-        for (const id in prestigeUpgrades) prestigeUpgrades[id].level = save[`pshop_${id}`] ?? 0;
+        // Old flat format: only load if the key matches a current upgrade
+        for (const id in prestigeUpgrades) prestigeUpgrades[id].level = safeNum(save[`pshop_${id}`]);
     }
 
     persistCore();
