@@ -239,7 +239,7 @@ const eventDefs = [
         id: 'drop', title: '🎁 Bean Drop!', desc: '',
         duration: 0, color: '#66bb6a',
         onStart: () => {
-            const bonus = Math.floor(Math.max(state.beans * 0.1, 50));
+            const bonus = Math.floor(Math.max(state.beans * 0.15, 50));
             state.beans     += bonus;
             state.totalEarned += bonus;
             updateBeanDisplay();
