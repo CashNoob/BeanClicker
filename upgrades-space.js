@@ -1,3 +1,6 @@
+// upgrades-space.js — Space Bean world upgrades (prestige 1+)
+// Scales up to level 150 (max level at prestige 1)
+
 export const upgradesSpace = {
     stardust: {
         name: "Stardust",
@@ -26,7 +29,7 @@ export const upgradesSpace = {
         bps: 120,
         bpc: 0,
         owned: 0,
-        unlockLevel: 3,
+        unlockLevel: 5,
         desc: "Converts starlight directly into bean energy.",
     },
     aliencontact: {
@@ -36,7 +39,7 @@ export const upgradesSpace = {
         bps: 0,
         bpc: 200,
         owned: 0,
-        unlockLevel: 5,
+        unlockLevel: 8,
         desc: "They came from across the galaxy. They brought beans.",
     },
     nebulafarm: {
@@ -46,7 +49,7 @@ export const upgradesSpace = {
         bps: 500,
         bpc: 0,
         owned: 0,
-        unlockLevel: 8,
+        unlockLevel: 12,
         desc: "Gas clouds seeded with bean spores. Harvest cycle: 1 second.",
     },
     cometcrash: {
@@ -56,7 +59,7 @@ export const upgradesSpace = {
         bps: 0,
         bpc: 800,
         owned: 0,
-        unlockLevel: 10,
+        unlockLevel: 16,
         desc: "Redirect comets into your stockpile. Surprisingly beany.",
     },
     spacestation: {
@@ -66,7 +69,7 @@ export const upgradesSpace = {
         bps: 2500,
         bpc: 0,
         owned: 0,
-        unlockLevel: 13,
+        unlockLevel: 20,
         desc: "Orbiting bean processing facility. Zero gravity = more beans somehow.",
     },
     blackholeextractor: {
@@ -76,7 +79,7 @@ export const upgradesSpace = {
         bps: 0,
         bpc: 5000,
         owned: 0,
-        unlockLevel: 16,
+        unlockLevel: 25,
         desc: "Siphons beans from the event horizon. Very dangerous. Very worth it.",
     },
     pulsarbeacon: {
@@ -86,7 +89,7 @@ export const upgradesSpace = {
         bps: 15000,
         bpc: 0,
         owned: 0,
-        unlockLevel: 20,
+        unlockLevel: 30,
         desc: "Broadcasts bean-growth signals across the galaxy at light speed.",
     },
     wormhole: {
@@ -96,7 +99,7 @@ export const upgradesSpace = {
         bps: 0,
         bpc: 40000,
         owned: 0,
-        unlockLevel: 24,
+        unlockLevel: 35,
         desc: "Each click pulls beans from a parallel universe where beans are everything.",
     },
     dysonshell: {
@@ -106,7 +109,7 @@ export const upgradesSpace = {
         bps: 200000,
         bpc: 0,
         owned: 0,
-        unlockLevel: 29,
+        unlockLevel: 40,
         desc: "Encases an entire star. All that energy, converted to beans.",
     },
     quantumtunnel: {
@@ -116,7 +119,7 @@ export const upgradesSpace = {
         bps: 0,
         bpc: 3000000,
         owned: 0,
-        unlockLevel: 34,
+        unlockLevel: 47,
         desc: "Beans tunnel through spacetime directly into your count.",
     },
     galaxycore: {
@@ -126,7 +129,7 @@ export const upgradesSpace = {
         bps: 15000000,
         bpc: 0,
         owned: 0,
-        unlockLevel: 40,
+        unlockLevel: 55,
         desc: "The supermassive bean at the center of everything.",
     },
     cosmicstring: {
@@ -136,7 +139,7 @@ export const upgradesSpace = {
         bps: 0,
         bpc: 100000000,
         owned: 0,
-        unlockLevel: 47,
+        unlockLevel: 63,
         desc: "A one-dimensional defect in spacetime, vibrating at bean frequency.",
     },
     universalseed: {
@@ -146,7 +149,100 @@ export const upgradesSpace = {
         bps: 500000000,
         bpc: 500000000,
         owned: 0,
-        unlockLevel: 55,
+        unlockLevel: 70,
         desc: "The origin of all cosmic beans. It was there at the Big Bean.",
+    },
+
+    // ── Extended upgrades (levels 75-150) ──
+
+    starforger: {
+        name: "Star Forger",
+        emoji: "🔨",
+        cost: 400000000000,
+        bps: 3000000000,
+        bpc: 0,
+        owned: 0,
+        unlockLevel: 78,
+        desc: "You don't harvest stars anymore. You build them. Each one is a bean factory.",
+    },
+    voidreaper: {
+        name: "Void Reaper",
+        emoji: "🗡️",
+        cost: 2000000000000,
+        bps: 0,
+        bpc: 15000000000,
+        owned: 0,
+        unlockLevel: 86,
+        desc: "A scythe that cuts through empty space itself, harvesting beans from nothingness.",
+    },
+    timeloopengine: {
+        name: "Time Loop Engine",
+        emoji: "⏳",
+        cost: 12000000000000,
+        bps: 20000000000,
+        bpc: 0,
+        owned: 0,
+        unlockLevel: 95,
+        desc: "Traps a moment of peak bean production in an infinite loop. Yesterday's harvest, forever.",
+    },
+    galacticfleet: {
+        name: "Galactic Fleet",
+        emoji: "🚀",
+        cost: 60000000000000,
+        bps: 0,
+        bpc: 80000000000,
+        owned: 0,
+        unlockLevel: 104,
+        desc: "Ten thousand ships. Each one strips a planet of its beans in a single pass.",
+    },
+    darkenergywell: {
+        name: "Dark Energy Well",
+        emoji: "🌑",
+        cost: 350000000000000,
+        bps: 120000000000,
+        bpc: 0,
+        owned: 0,
+        unlockLevel: 113,
+        desc: "Taps into the expansion of the universe itself. More space = more beans.",
+    },
+    cosmicweaver: {
+        name: "Cosmic Weaver",
+        emoji: "🕸️",
+        cost: 2000000000000000,
+        bps: 0,
+        bpc: 500000000000,
+        owned: 0,
+        unlockLevel: 122,
+        desc: "Weaves new realities from raw spacetime. Each thread is a bean timeline.",
+    },
+    bigbangecho: {
+        name: "Big Bang Echo",
+        emoji: "💥",
+        cost: 15000000000000000,
+        bps: 800000000000,
+        bpc: 0,
+        owned: 0,
+        unlockLevel: 132,
+        desc: "Replays the birth of the universe. Each replay generates a cosmos of beans.",
+    },
+    multiversalcrown: {
+        name: "Multiversal Crown",
+        emoji: "👑",
+        cost: 80000000000000000,
+        bps: 0,
+        bpc: 3000000000000,
+        owned: 0,
+        unlockLevel: 140,
+        desc: "You rule all realities. Every click echoes across infinite universes.",
+    },
+    infinitybean: {
+        name: "Infinity Bean",
+        emoji: "♾️",
+        cost: 500000000000000000,
+        bps: 5000000000000,
+        bpc: 5000000000000,
+        owned: 0,
+        unlockLevel: 148,
+        desc: "A bean that contains all beans. It was always here. You just had to reach level 148.",
     },
 };
