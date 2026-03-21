@@ -587,7 +587,7 @@ function showBanner(msg) {
     banner.id        = 'announcementBanner';
     banner.className = 'announcement-banner';
     banner.innerHTML = `<span class="announcement-text">📢 ${msg}</span><button class="announcement-close" onclick="this.parentElement.remove()">✕</button>`;
-    document.body.appendChild(banner);
+    document.getElementById('topBanners').prepend(banner);
 }
 
 // ══════════════════════════════════════════════

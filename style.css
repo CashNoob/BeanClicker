@@ -33,6 +33,8 @@ body {
     background: #e8f5e9;
     color: var(--text-dark);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ── Floating background beans ── */
@@ -68,8 +70,7 @@ body {
 
 /* ── Event bar ── */
 .event-bar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
+    width: 100%;
     z-index: 100;
     display: flex;
     align-items: center;
@@ -105,7 +106,8 @@ body {
 .ui {
     display: flex;
     width: 100%;
-    height: 100vh;
+    flex: 1;
+    min-height: 0;
     position: relative;
     z-index: 1;
 }
@@ -796,8 +798,7 @@ body {
 
 /* ── Announcement banner ── */
 .announcement-banner {
-    position: fixed;
-    top: 0; left: 0; right: 0;
+    width: 100%;
     background: var(--orange);
     padding: 10px 16px;
     display: flex;
