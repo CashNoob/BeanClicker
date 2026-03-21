@@ -400,6 +400,7 @@ async function handleSignup() {
     const password = document.getElementById('signupPassword').value;
     if (!username || !email || !password) { showAuthError('Please fill in all fields.'); return; }
     if (username.length < 1 || username.length > 16) { showAuthError('Username must be 1-16 characters.'); return; }
+    if (!/^[a-zA-Z0-9_\- ]+$/.test(username)) { showAuthError('Username can only contain letters, numbers, spaces, hyphens, and underscores.'); return; }
     if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
     try {
         await signUp(email, password, username);

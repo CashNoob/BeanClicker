@@ -568,9 +568,20 @@ function buildUpgradeList(containerId, upgradeSet, isWorld) {
 //  TOAST
 // ══════════════════════════════════════════════
 function showToast(title, desc, color = '#4caf50') {
+    const safeColor = /^#[0-9a-fA-F]{3,8}$|^[a-zA-Z]+$/.test(color) ? color : '#4caf50';
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = `<span class="toast-title" style="color:${color}">${title}</span>${desc ? `<span class="toast-desc">${desc}</span>` : ''}`;
+    const titleEl = document.createElement('span');
+    titleEl.className = 'toast-title';
+    titleEl.style.color = safeColor;
+    titleEl.textContent = title;
+    toast.appendChild(titleEl);
+    if (desc) {
+        const descEl = document.createElement('span');
+        descEl.className = 'toast-desc';
+        descEl.textContent = desc;
+        toast.appendChild(descEl);
+    }
     dom.toastContainer.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('toast-show'));
     setTimeout(() => {
@@ -586,7 +597,15 @@ function showBanner(msg) {
     const banner = document.createElement('div');
     banner.id        = 'announcementBanner';
     banner.className = 'announcement-banner';
-    banner.innerHTML = `<span class="announcement-text">📢 ${msg}</span><button class="announcement-close" onclick="this.parentElement.remove()">✕</button>`;
+    const textEl = document.createElement('span');
+    textEl.className = 'announcement-text';
+    textEl.textContent = '📢 ' + msg;
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'announcement-close';
+    closeBtn.textContent = '✕';
+    closeBtn.onclick = () => banner.remove();
+    banner.appendChild(textEl);
+    banner.appendChild(closeBtn);
     document.getElementById('topBanners').prepend(banner);
 }
 
@@ -1085,7 +1104,7 @@ function Initialize() {
     initAudioPool();
 
     onAuthReady(async (user) => {
-        console.log('onAuthReady fired', user?.uid);
+        // auth state ready
         if (!user) {
             if (dom.authOverlay) dom.authOverlay.classList.remove('hidden');
             return;
