@@ -261,7 +261,7 @@ const eventDefs = [
         onEnd: () => {},
     },
     {
-        id: 'harvest', title: '🌾 Double Harvest!', desc: 'BPS x2 for 30 seconds!',
+        id: 'harvest', title: '🌾 Double Harvest!', desc: 'BPS & BPC x2 for 30 seconds!',
         duration: 30000, color: '#aed581',
         onStart: () => { state.eventMultiplier = 2; },
         onEnd:   () => { state.eventMultiplier = 1; },
@@ -736,7 +736,7 @@ function beanclicker() {
         return;
     }
 
-    const frenzy     = state.activeEvent && state.activeEvent.id === 'frenzy' ? state.eventMultiplier : 1;
+    const frenzy     = state.activeEvent && (state.activeEvent.id === 'frenzy' || state.activeEvent.id === 'harvest') ? state.eventMultiplier : 1;
     const isCrit     = state.prestigeEffects.critChance > 0 && Math.random() < state.prestigeEffects.critChance;
     const critMulti  = isCrit ? 10 : 1;
     const clicktotal = Math.floor(calcBPC() * getPrestigeMulti() * frenzy * critMulti);
